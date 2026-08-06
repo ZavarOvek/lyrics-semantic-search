@@ -1,0 +1,10 @@
+# SPEC-03 §5 example config: dev corpus, hybrid (dense + lexical BM25 via
+# RRF) retrieval, numpy index.
+corpus: dev
+embedder: bge-m3
+index: numpy
+retrieval:
+  mode: hybrid
+  rrf_k: 60
+  top_k: 50
+  return_n: 10

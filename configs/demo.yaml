@@ -1,0 +1,19 @@
+# SPEC-04 §3 demo config: fully synthetic ~200-song corpus (see
+# scripts/generate_demo_corpus.py and notes/reports/spec04-report.md's §3
+# section), tfidf + BM25 hybrid retrieval. CPU-only, no model download, no
+# GPU, no network call -- builds and searches in seconds on any machine.
+#
+# Build once (writes data_demo/demo/{raw,chunks}.jsonl + embeddings/ +
+# indexes/, matching --data-root below):
+#   python scripts/generate_demo_corpus.py
+#
+# Then search:
+#   python -m lyrics_search.runners.search --config configs/demo.yaml \
+#     "sunrise valley" --data-root data_demo
+corpus: demo
+embedder: tfidf
+index: numpy
+retrieval:
+  mode: hybrid
+  top_k: 50
+  return_n: 10

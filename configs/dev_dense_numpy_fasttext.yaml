@@ -1,0 +1,14 @@
+# SPEC-03-PATCH §1 example config: dev corpus, dense-only retrieval, numpy
+# index, fasttext-avg embedder -- exercises the object (name + params) form
+# of `embedder` in config.py, and proves fasttext-avg is now runnable from
+# YAML with no code changes (it was deliberately unregistered in SPEC-03).
+corpus: dev
+embedder:
+  name: fasttext-avg
+  params:
+    vectors_path: data/models/fasttext/cc.en.300.vec
+index: numpy
+retrieval:
+  mode: dense
+  top_k: 50
+  return_n: 10

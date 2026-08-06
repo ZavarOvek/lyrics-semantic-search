@@ -1,0 +1,10 @@
+# SPEC-03-PATCH §1 example config: dev corpus, dense-only retrieval, numpy
+# index, tfidf embedder -- cheapest embedder, useful for fast smoke tests
+# of the whole build/search pipeline without touching GPU/network.
+corpus: dev
+embedder: tfidf
+index: numpy
+retrieval:
+  mode: dense
+  top_k: 50
+  return_n: 10

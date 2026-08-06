@@ -1,0 +1,10 @@
+# SPEC-03 §5 example config: dev corpus, dense-only retrieval, numpy index.
+# The default/baseline config -- small corpus, exact brute-force search,
+# no faiss build cost.
+corpus: dev
+embedder: bge-m3
+index: numpy
+retrieval:
+  mode: dense
+  top_k: 50
+  return_n: 10

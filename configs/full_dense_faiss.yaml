@@ -1,0 +1,11 @@
+# SPEC-03 §5 example config: full corpus, dense retrieval, faiss HNSW
+# index -- numpy's O(n) brute-force search doesn't scale to the ~180k-chunk
+# full corpus, so this config uses faiss's approximate index instead (see
+# indexes/faiss_index.py for the build-cost/caching rationale).
+corpus: full
+embedder: bge-m3
+index: faiss
+retrieval:
+  mode: dense
+  top_k: 50
+  return_n: 10

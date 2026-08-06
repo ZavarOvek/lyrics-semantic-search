@@ -1,0 +1,21 @@
+{"_meta": "Bootstrap sanity set only. Queries are song titles, which typically recur verbatim in the lyrics; this systematically favours lexical retrieval. NOT to be reused as the eval-phase benchmark."}
+{"query": "Bring it Back", "relevant_song_ids": ["78790c6e9606ff82"]}
+{"query": "Summertime When Im With You", "relevant_song_ids": ["dde45bf06bc86af5"]}
+{"query": "Paris feat. Au Revoir Simone", "relevant_song_ids": ["8fdd0795c3c0ce1a"]}
+{"query": "Sway", "relevant_song_ids": ["091665edc19a3a92"]}
+{"query": "You Spilt Beer On My Canvas", "relevant_song_ids": ["e826ad28b465ebce"]}
+{"query": "Bitterness", "relevant_song_ids": ["24393adbf733bdc4"]}
+{"query": "Mind Of A Born Misfit", "relevant_song_ids": ["7815258824bdfde6"]}
+{"query": "Boy Keep Movin", "relevant_song_ids": ["01db502beb8c46d5"]}
+{"query": "Body", "relevant_song_ids": ["d5da1dd24562a4b0"]}
+{"query": "Nightstands", "relevant_song_ids": ["bc66a17b9e86345c"]}
+{"query": "Hotdamalama DeeJay Silver Remix", "relevant_song_ids": ["f063f884c503bad1"]}
+{"query": "HAVOC", "relevant_song_ids": ["d532ad022ad832d5"]}
+{"query": "This is home", "relevant_song_ids": ["96569c61ac657027"]}
+{"query": "Nosedive", "relevant_song_ids": ["b383d55fd386bab3"]}
+{"query": "Still Around", "relevant_song_ids": ["b2c7a0319d18b603"]}
+{"query": "STRANGERS", "relevant_song_ids": ["4a2f07083e8e646c"]}
+{"query": "Every Friend I Ever had...", "relevant_song_ids": ["8bf0b45f4c5544ec"]}
+{"query": "Aligned", "relevant_song_ids": ["18bb27a85d4d64c1"]}
+{"query": "23", "relevant_song_ids": ["b3eea080f263aa02"]}
+{"query": "Ice Star", "relevant_song_ids": ["6b8ac210f24bfddf"]}

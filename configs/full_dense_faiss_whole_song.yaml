@@ -1,0 +1,17 @@
+# EVAL-PREP §3: the unchunked arm -- one vector per song instead of one
+# per section. Identical to full_dense_faiss.yaml except for `chunking`,
+# which is the point: the two configs differ in exactly one field, so any
+# measured difference between them is attributable to chunking alone.
+#
+# bge-m3 only. Its real max_seq_length is 8192 (SPEC-02-PATCH item 5), so
+# a whole song fits in one vector; e5-base (512) and the two lexical
+# baselines would silently truncate most songs, which would measure
+# truncation rather than chunking.
+corpus: full
+chunking: whole_song
+embedder: bge-m3
+index: faiss
+retrieval:
+  mode: dense
+  top_k: 50
+  return_n: 10

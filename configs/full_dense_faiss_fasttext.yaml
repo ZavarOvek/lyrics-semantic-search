@@ -1,0 +1,20 @@
+# EVAL-PREP §2: full corpus, fasttext-avg, faiss HNSW index.
+#
+# `vectors_path` is required by the embedder's declared params, so a
+# missing one fails at config-load time rather than deep inside the embed
+# stage. `limit` is left at its default (500,000 words) -- the same
+# vocabulary the dev arm used, so the two are comparable.
+#
+# faiss is usable here, unlike for tfidf, because fasttext-avg produces a
+# dense 300-dim vector: averaging word vectors gives a value in every
+# dimension whether or not the word was in vocabulary.
+corpus: full
+embedder:
+  name: fasttext-avg
+  params:
+    vectors_path: data/models/fasttext/cc.en.300.vec
+index: faiss
+retrieval:
+  mode: dense
+  top_k: 50
+  return_n: 10

@@ -1,0 +1,21 @@
+data/
+*.npy
+*.npz
+*.jsonl
+.venv/
+__pycache__/
+.coverage
+.pytest_cache/
+
+# винятки: ці мають бути в репозиторії
+!data_demo/**/*.jsonl
+!tests/golden/**/*.jsonl
+
+# data_demo/: only the small synthetic raw/chunks/rejects text above is
+# tracked. embeddings/ and indexes/ are rebuildable in seconds (see
+# scripts/generate_demo_corpus.py) and the vectors file is gitignored
+# anyway (blanket *.npy/*.npz rules -- a sparse embedder writes .npz, see
+# lyrics_search/vector_store.py), so committing the rest of those dirs would only
+# ever leave stale/incomplete artifacts sitting in git.
+data_demo/**/embeddings/
+data_demo/**/indexes/

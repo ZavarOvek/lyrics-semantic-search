@@ -1,0 +1,13 @@
+# EVAL-PREP §2: full corpus, e5-base, faiss HNSW index.
+#
+# faiss rather than numpy for the same reason bge-m3 uses it: a dense
+# 181k x 768 matrix is a brute-force scan of 139M floats per query. The
+# index choice is held constant across the three dense arms so that what
+# differs between them is the embedder, not the search structure.
+corpus: full
+embedder: e5-base
+index: faiss
+retrieval:
+  mode: dense
+  top_k: 50
+  return_n: 10

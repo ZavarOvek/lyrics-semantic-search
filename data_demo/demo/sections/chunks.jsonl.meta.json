@@ -1,0 +1,9 @@
+{
+  "cache_key": "64d8f993ef78f1445ecf2f5d23461501510d1f17",
+  "input_hash": "4f8805f7d62f9df0b2b3a6afdf95b387cedd9a90",
+  "stage_config": {
+    "chunking": "sections",
+    "min_song_words": 10,
+    "min_chunk_chars": 15
+  }
+}

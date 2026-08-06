@@ -1,0 +1,18 @@
+# EVAL-PREP §1: full corpus, tfidf, numpy index.
+#
+# `numpy` is not a fallback choice here. tfidf encodes to a sparse matrix
+# (see embedders/tfidf.py), and faiss takes dense float32 input only --
+# densifying would mean 51.8 GiB. NumpyIndex is the index that dispatches
+# on representation, so it is the only one this embedder can use. That is
+# a property of the method, not a gap in coverage.
+#
+# Brute force is also not the liability it is for bge-m3: at ~28 non-zeros
+# per chunk the whole matrix holds ~5.2M values, far less arithmetic per
+# query than a dense 181,471 x 1024 scan.
+corpus: full
+embedder: tfidf
+index: numpy
+retrieval:
+  mode: dense
+  top_k: 50
+  return_n: 10

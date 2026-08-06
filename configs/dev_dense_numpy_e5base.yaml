@@ -1,0 +1,9 @@
+# SPEC-03-PATCH §1 example config: dev corpus, dense-only retrieval, numpy
+# index, e5-base embedder.
+corpus: dev
+embedder: e5-base
+index: numpy
+retrieval:
+  mode: dense
+  top_k: 50
+  return_n: 10
