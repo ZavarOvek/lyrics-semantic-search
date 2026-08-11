@@ -28,9 +28,10 @@ What exists:
 ## Tests and quality
 
 - **268 tests.** In a clean clone on the base `requirements.txt`: **263
-  passed, 5 skipped** — verified from CI run 31448267358, identical on
-  3.11 and 3.12. In the full local environment, with `faiss`, `gensim` and
-  the real corpora present: **268 passed, 0 skipped**.
+  passed, 5 skipped** — verified from CI run 31450986114 on commit
+  `ed29dc8`, identical on 3.11 and 3.12. In the full local environment,
+  with `faiss`, `gensim` and the real corpora present: **268 passed, 0
+  skipped**.
 - Every skip is a named missing dependency, never a hidden failure. The
   five are three `pytest.importorskip("faiss")` sites in `test_indexes.py`
   and both parametrizations of `test_fitted_state_persistence.py`, which
