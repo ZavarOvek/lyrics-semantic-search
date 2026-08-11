@@ -1,5 +1,11 @@
 # faiss `write_index`/`read_index` fail on non-ASCII Windows paths
 
+> **Generalisation, added after a second incident of the same class.** This
+> is not a faiss trap. It is a property of *any* tool that hands a path
+> straight to the native Windows API instead of going through Python's
+> Unicode-aware file layer. Read "Not only faiss" at the end of this file
+> before concluding that some new tool is safe on this checkout.
+
 **Status:** found and fixed during SPEC-03 Phase C. Recorded here as its own
 file per SPEC-03-PATCH §6, because it's a concrete platform trap worth
 citing directly in a README later, not a detail worth re-deriving from
@@ -67,3 +73,53 @@ suite was run against the wrong (non-project) Python interpreter, see
 `notes/reports/spec03-patch-report.md` §2. Confirmed passing against a real faiss
 install (both during Phase C and again in SPEC-03-PATCH's environment
 re-verification, this time via `.venv`, which does have faiss).
+
+## Not only faiss
+
+A second incident, during SUBAGENTS.md, showed this is a class of bug
+rather than one dependency's defect. Creating a directory junction so
+Claude Code could see `.claude/agents/` inside the repo:
+
+```
+cmd /c mklink /J "D:\...\<non-ASCII>\.claude\agents" "D:\...\<non-ASCII>\lyrics-semantic-search\.claude\agents"
+```
+
+failed with a mojibake error message -- the message itself came back
+with the path already corrupted, which is the tell. The same operation
+through PowerShell succeeded on the identical path:
+
+```
+powershell -NoProfile -Command "New-Item -ItemType Junction -Path ... -Target ..."
+```
+
+`mklink` is a `cmd.exe` builtin, and `cmd.exe` resolves path arguments
+through the console's active ANSI codepage before the filesystem call.
+PowerShell passes UTF-16 through to the wide-character Windows API.
+Nothing about faiss is involved; the failure mode is identical because
+the cause is identical.
+
+### What to conclude from this
+
+The rule is about the *interface*, not about any particular library. A
+tool is at risk here whenever a path string crosses out of Python (or
+another Unicode-correct runtime) into native Windows code:
+
+- C/C++ extensions that call `fopen()` on a path they were given
+  (faiss -- and by the same argument, any future index or model format
+  that persists itself from native code)
+- `cmd.exe` builtins and anything invoked through `cmd /c`
+- command-line tools that take a path as an argument and were built
+  without a Unicode manifest
+
+Tools that are *not* at risk: anything doing its file I/O through Python
+`open()`/`pathlib`, and anything given bytes rather than a path.
+
+So the check to run on a new dependency is narrow and cheap: does it ever
+receive a path that it opens itself? If yes, exercise it once on this
+checkout before trusting it, rather than on a tmp dir that may sit under
+an all-ASCII path. If it does, prefer the same fix used for faiss --
+serialise in memory, let Python touch the disk.
+
+A useful corollary: a mangled or mojibake *error message* is itself
+evidence of this bug, because it shows the path was already re-encoded
+before the failure was reported.
