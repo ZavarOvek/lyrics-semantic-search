@@ -2,11 +2,15 @@
 # index, fasttext-avg embedder -- exercises the object (name + params) form
 # of `embedder` in config.py, and proves fasttext-avg is now runnable from
 # YAML with no code changes (it was deliberately unregistered in SPEC-03).
+#
+# PRE-EVAL-OPT §1: points at the converted `.kv` artifact rather than the
+# 4.5 GB `.vec` -- same 500,000 words, bit-identical vectors, ~0.2s to load
+# instead of ~178s. Build it with scripts/convert_fasttext_vectors.py.
 corpus: dev
 embedder:
   name: fasttext-avg
   params:
-    vectors_path: data/models/fasttext/cc.en.300.vec
+    vectors_path: data/models/fasttext/cc.en.300.limit500000.kv
 index: numpy
 retrieval:
   mode: dense

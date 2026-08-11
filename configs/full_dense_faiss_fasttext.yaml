@@ -5,6 +5,13 @@
 # stage. `limit` is left at its default (500,000 words) -- the same
 # vocabulary the dev arm used, so the two are comparable.
 #
+# PRE-EVAL-OPT §1: this names the converted `.kv` artifact, not the 4.5 GB
+# `.vec` text file -- ~178s to parse against ~0.2s to memory-map, for a
+# bit-identical 500,000 x 300 matrix. Build it once with
+# scripts/convert_fasttext_vectors.py. The limit is fixed inside that
+# artifact and stated in its filename, so it cannot drift from this config
+# silently.
+#
 # faiss is usable here, unlike for tfidf, because fasttext-avg produces a
 # dense 300-dim vector: averaging word vectors gives a value in every
 # dimension whether or not the word was in vocabulary.
@@ -12,7 +19,7 @@ corpus: full
 embedder:
   name: fasttext-avg
   params:
-    vectors_path: data/models/fasttext/cc.en.300.vec
+    vectors_path: data/models/fasttext/cc.en.300.limit500000.kv
 index: faiss
 retrieval:
   mode: dense

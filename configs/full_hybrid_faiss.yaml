@@ -1,0 +1,16 @@
+# Full corpus, hybrid retrieval (dense + BM25 lexical fused by RRF), faiss
+# HNSW index for the dense branch.
+#
+# The hybrid counterpart of full_dense_faiss.yaml: same corpus, embedder and
+# index, so the only thing that differs is the retrieval mode. Used by
+# scripts/probe_themes.py, which wants both branches active -- a theme that
+# only one branch can find is exactly the kind of thing worth seeing while
+# drafting query wording.
+corpus: full
+embedder: bge-m3
+index: faiss
+retrieval:
+  mode: hybrid
+  rrf_k: 60
+  top_k: 50
+  return_n: 10

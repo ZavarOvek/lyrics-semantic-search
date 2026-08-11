@@ -1,0 +1,28 @@
+# Full corpus, tfidf + BM25 fused by RRF, numpy index.
+#
+# The hybrid counterpart of full_dense_numpy_tfidf.yaml. `numpy` is not a
+# fallback: tfidf encodes to a sparse matrix and faiss takes dense float32
+# only, so NumpyIndex is the only index this embedder can use -- see that
+# file for the full reasoning.
+#
+# Purpose: the second opinion for scripts/probe_themes.py. When a theme
+# finds nothing through full_hybrid_faiss.yaml (bge-m3 + BM25) and is a
+# candidate for deletion, it gets re-probed here before being dropped. The
+# risk being guarded against is discarding exactly the query on which a
+# lexical arm would have won, so the check is deliberately run in the most
+# permissive form the other arm can take -- hybrid, not dense.
+#
+# Hybrid specifically, even though the BM25 branch is byte-identical to the
+# one in full_hybrid_faiss.yaml: under RRF its ranks compete with whatever
+# dense partner it is fused with. A strong bge-m3 branch can push genuinely
+# relevant BM25 hits out of the top-10 that a weaker tfidf branch lets
+# through. A theme can therefore revive here on material BM25 already found
+# in the first probe but could not fit into the window.
+corpus: full
+embedder: tfidf
+index: numpy
+retrieval:
+  mode: hybrid
+  rrf_k: 60
+  top_k: 50
+  return_n: 10

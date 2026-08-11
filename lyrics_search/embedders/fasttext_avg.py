@@ -13,6 +13,21 @@ NOT downloaded automatically by this module -- the caller supplies a
 local path via `vectors_path`, which runners/embed.py only does after
 explicit user permission (see SPEC-00 file-download rule).
 
+PRE-EVAL-OPT §1: `vectors_path` may instead name a `.kv` artifact --
+gensim's native format, produced once by
+scripts/convert_fasttext_vectors.py and loaded with `mmap='r'` so the
+vector matrix is mapped from its .npy sidecar rather than parsed. Parsing
+the text file costs ~178s against ~0.2s mapped, and both eval tracks pay
+that on every run. The format is chosen by file extension, the same way
+vector_store.py picks a reader from `vectors.npy` vs `vectors.npz`.
+
+`limit` cannot be applied to a `.kv` artifact: gensim's loader has no such
+parameter, so the vocabulary is fixed when the artifact is built. Rather
+than ignore the argument, a disagreement between it and the artifact is
+raised -- silently loading a different vocabulary than the config asked
+for would change which words are in scope, and so change every embedding
+built from it.
+
 SPEC-02-PATCH item 3: unlike the word vectors themselves (loaded fresh
 from `vectors_path` every time, not part of "fit"), the per-corpus IDF
 weighting *is* fitted state -- a query weighted against a different
@@ -34,6 +49,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from lyrics_search.core.text import tokenize_words
 
 DIM = 300
+BINARY_SUFFIX = ".kv"  # gensim native format; anything else is parsed as text
 
 
 class FastTextAvgEmbedder:
@@ -43,7 +59,26 @@ class FastTextAvgEmbedder:
     def __init__(self, vectors_path: str, limit: int | None = 500_000):
         from gensim.models import KeyedVectors
 
-        self._kv = KeyedVectors.load_word2vec_format(vectors_path, limit=limit)
+        path = Path(vectors_path)
+        if not path.exists():
+            raise FileNotFoundError(
+                f"{self.name}: missing word vectors {path}. Supply the fastText "
+                f".vec file, or build the fast-loading binary with "
+                f"scripts/convert_fasttext_vectors.py."
+            )
+        if path.suffix == BINARY_SUFFIX:
+            self._kv = KeyedVectors.load(str(path), mmap="r")
+            vocab_size = len(self._kv.index_to_key)
+            if limit is not None and vocab_size != limit:
+                raise ValueError(
+                    f"{self.name}: {path} holds {vocab_size} words but limit={limit} "
+                    f"was requested. A .kv artifact's vocabulary is fixed at build "
+                    f"time and cannot be re-limited on load -- rebuild it with "
+                    f"scripts/convert_fasttext_vectors.py --limit {limit}, or drop "
+                    f"the limit from the config."
+                )
+        else:
+            self._kv = KeyedVectors.load_word2vec_format(str(path), limit=limit)
         self._idf: dict[str, float] = {}
         self._default_idf = 1.0
         self._fitted = False
