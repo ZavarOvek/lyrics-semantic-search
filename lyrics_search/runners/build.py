@@ -88,7 +88,10 @@ def _run_ingest_stage(config: ExperimentConfig, corpus_dir: Path, force: bool, s
         )
     run_ingest(source, corpus_dir)
     write_sidecar_meta(
-        raw_path, cache_key=cache_key, input_hash=ROOT_INPUT_HASH, stage_config=stage_config,
+        raw_path,
+        cache_key=cache_key,
+        input_hash=ROOT_INPUT_HASH,
+        stage_config=stage_config,
     )
     return cache_key
 
@@ -113,7 +116,10 @@ def _run_preprocess_stage(
 
     run_preprocess(raw_path, work_dir, chunking)
     write_sidecar_meta(
-        chunks_path, cache_key=cache_key, input_hash=ingest_cache_key, stage_config=stage_config,
+        chunks_path,
+        cache_key=cache_key,
+        input_hash=ingest_cache_key,
+        stage_config=stage_config,
     )
     return cache_key
 
@@ -195,7 +201,9 @@ def _run_index_stage(
     with open(tmp_root / "meta.json", "w", encoding="utf-8") as f:
         json.dump(
             {"cache_key": cache_key, "input_hash": embed_cache_key, "stage_config": stage_config},
-            f, ensure_ascii=False, indent=2,
+            f,
+            ensure_ascii=False,
+            indent=2,
         )
     atomic_replace_dir(tmp_root, index_dir)
     print(f"[index:{config.index}] built (cache_key={cache_key[:12]})")

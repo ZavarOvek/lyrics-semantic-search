@@ -33,9 +33,7 @@ class JsonlFileSource:
                     artist = rec["artist"]
                     title = rec["title"]
                 except KeyError as e:
-                    raise ValueError(
-                        f"{path}:{lineno}: record missing required field {e}"
-                    ) from e
+                    raise ValueError(f"{path}:{lineno}: record missing required field {e}") from e
                 text_raw = rec.get("text_raw", rec.get("lyrics", ""))
                 yield RawSong(
                     song_id=rec.get("song_id") or make_song_id(artist, title),

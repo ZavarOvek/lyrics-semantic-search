@@ -9,6 +9,7 @@ LexicalRetriever, but it makes a 2-doc fixture useless for testing
 ranking/scoring behavior (every score comes out 0). Two filler songs
 with disjoint vocabulary give real, non-zero idf weights instead.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -18,33 +19,76 @@ from lyrics_search.retrievers.lexical import LexicalRetriever
 
 SONGS = {
     "s1": RawSong(
-        song_id="s1", artist="A", title="One",
+        song_id="s1",
+        artist="A",
+        title="One",
         text_raw="walking alone in the rain thinking about you all night long",
         source="test",
     ),
     "s2": RawSong(
-        song_id="s2", artist="B", title="Two",
+        song_id="s2",
+        artist="B",
+        title="Two",
         text_raw="dancing in the summer sun with my friends all day",
         source="test",
     ),
     "s3": RawSong(
-        song_id="s3", artist="C", title="Three",
+        song_id="s3",
+        artist="C",
+        title="Three",
         text_raw="a completely different filler song about nothing at all today",
         source="test",
     ),
     "s4": RawSong(
-        song_id="s4", artist="D", title="Four",
+        song_id="s4",
+        artist="D",
+        title="Four",
         text_raw="another filler song with unrelated words entirely different",
         source="test",
     ),
 }
 
 CHUNKS = {
-    "s1:0": Chunk(chunk_id="s1:0", song_id="s1", section="verse", text="walking alone in the rain", position=0, split_by="none"),
-    "s1:1": Chunk(chunk_id="s1:1", song_id="s1", section="chorus", text="thinking about you all night long", position=1, split_by="none"),
-    "s2:0": Chunk(chunk_id="s2:0", song_id="s2", section=None, text="dancing in the summer sun with my friends", position=0, split_by="none"),
-    "s3:0": Chunk(chunk_id="s3:0", song_id="s3", section=None, text="a completely different filler song about nothing at all today", position=0, split_by="none"),
-    "s4:0": Chunk(chunk_id="s4:0", song_id="s4", section=None, text="another filler song with unrelated words entirely different", position=0, split_by="none"),
+    "s1:0": Chunk(
+        chunk_id="s1:0",
+        song_id="s1",
+        section="verse",
+        text="walking alone in the rain",
+        position=0,
+        split_by="none",
+    ),
+    "s1:1": Chunk(
+        chunk_id="s1:1",
+        song_id="s1",
+        section="chorus",
+        text="thinking about you all night long",
+        position=1,
+        split_by="none",
+    ),
+    "s2:0": Chunk(
+        chunk_id="s2:0",
+        song_id="s2",
+        section=None,
+        text="dancing in the summer sun with my friends",
+        position=0,
+        split_by="none",
+    ),
+    "s3:0": Chunk(
+        chunk_id="s3:0",
+        song_id="s3",
+        section=None,
+        text="a completely different filler song about nothing at all today",
+        position=0,
+        split_by="none",
+    ),
+    "s4:0": Chunk(
+        chunk_id="s4:0",
+        song_id="s4",
+        section=None,
+        text="another filler song with unrelated words entirely different",
+        position=0,
+        split_by="none",
+    ),
 }
 
 

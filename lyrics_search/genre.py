@@ -31,8 +31,7 @@ def load_genre_lookup(data_root: Path | str, corpus: str) -> dict[str, str]:
     path = genre_path(data_root, corpus)
     if not path.exists():
         raise FileNotFoundError(
-            f"missing {path} -- run "
-            f"`python scripts/build_genre_lookup.py --corpus {corpus}` first."
+            f"missing {path} -- run `python scripts/build_genre_lookup.py --corpus {corpus}` first."
         )
     lookup: dict[str, str] = {}
     with open(path, encoding="utf-8") as f:

@@ -37,7 +37,7 @@ class Reject:
     # preprocess.py, which always has the full RawSong on hand.
     artist: str = ""
     title: str = ""
-    position: int | None = None       # chunk-level only: pre-filter position
-    text_preview: str | None = None   # chunk-level only: first ~80 chars
-    chunk_id: str | None = None       # embed-level only: which chunk (SPEC-02-PATCH item 4)
+    position: int | None = None  # chunk-level only: pre-filter position
+    text_preview: str | None = None  # chunk-level only: first ~80 chars
+    chunk_id: str | None = None  # embed-level only: which chunk (SPEC-02-PATCH item 4)
     embedder_name: str | None = None  # embed-level only: which embedder flagged it

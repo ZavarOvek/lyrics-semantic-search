@@ -29,6 +29,7 @@ copyright": `data/` is never committed), so this test skips cleanly,
 rather than failing, when they're absent (a fresh clone, or CI without
 the real corpus built).
 """
+
 from __future__ import annotations
 
 import subprocess

@@ -1,4 +1,5 @@
 """SPEC-03 §4: chunk -> song aggregation tests."""
+
 from __future__ import annotations
 
 from lyrics_search.contracts import Chunk

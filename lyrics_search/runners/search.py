@@ -64,7 +64,9 @@ def build_retriever(config: ExperimentConfig, data_root: Path | str = "data"):
     elif config.retrieval.mode == "lexical":
         retriever = lexical_retriever
     else:
-        retriever = HybridRetriever(dense_retriever, lexical_retriever, rrf_k=config.retrieval.rrf_k)
+        retriever = HybridRetriever(
+            dense_retriever, lexical_retriever, rrf_k=config.retrieval.rrf_k
+        )
 
     load_s = time.time() - t0
     return retriever, load_s
@@ -109,11 +111,11 @@ def _print_result(result: SearchResult, timing: dict) -> None:
         print(f"branch_statuses={result.branch_statuses}")
     for rank, hit in enumerate(result.hits, start=1):
         preview = hit.best_chunk.text[:80].replace("\n", " ")
-        print(f"  {rank}. {hit.song_id}  score={hit.score:.4f}  \"{preview}\"")
+        print(f'  {rank}. {hit.song_id}  score={hit.score:.4f}  "{preview}"')
     print(
-        f"load={timing['load_s']*1000:.1f}ms cold_query={timing['cold_query_s']*1000:.1f}ms"
+        f"load={timing['load_s'] * 1000:.1f}ms cold_query={timing['cold_query_s'] * 1000:.1f}ms"
         + (
-            f" warm_query_avg={timing['warm_query_s_avg']*1000:.1f}ms"
+            f" warm_query_avg={timing['warm_query_s_avg'] * 1000:.1f}ms"
             if timing["warm_query_s_avg"] is not None
             else ""
         )
@@ -129,7 +131,9 @@ def main() -> None:
     parser.add_argument("--config", required=True, help="path to an ExperimentConfig YAML")
     parser.add_argument("query", help="search query text")
     parser.add_argument("--data-root", default="data")
-    parser.add_argument("--repeat", type=int, default=1, help="repeat query N times to measure warm latency")
+    parser.add_argument(
+        "--repeat", type=int, default=1, help="repeat query N times to measure warm latency"
+    )
     args = parser.parse_args()
 
     config = load_config(args.config)

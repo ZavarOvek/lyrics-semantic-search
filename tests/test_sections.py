@@ -10,6 +10,7 @@ target each branch directly, by function where practical (fast, precise
 failure localization) and through chunk_song() end-to-end where the
 positional/cascade interaction between levels is the point.
 """
+
 from __future__ import annotations
 
 from lyrics_search.core.sections import (

@@ -1,6 +1,7 @@
 """SPEC-03 §1: query-time state loading tests -- must never fit/build,
 must fail loudly (with exact missing-artifact paths) on any gap, must
 verify fitted_state_sha1 and dim."""
+
 from __future__ import annotations
 
 import hashlib
@@ -42,6 +43,7 @@ def _build_fitted_tfidf(embeddings_dir):
 
 
 # --- load_fitted_embedder -----------------------------------------------
+
 
 def test_load_fitted_embedder_round_trip(tmp_path):
     expected_dim = _build_fitted_tfidf(tmp_path)
@@ -92,6 +94,7 @@ def test_load_fitted_embedder_no_fit_method_is_noop(tmp_path):
     meta.json for them (just with fitted_state_file=None), so loading
     still requires that meta.json to exist; it's only the load_fit()
     step itself that's skipped."""
+
     class FakeNeuralEmbedder:
         name = "fake-neural"
         dim = 4
@@ -111,6 +114,7 @@ def test_load_fitted_embedder_no_fit_method_is_noop(tmp_path):
 
 # --- warmup ---------------------------------------------------------------
 
+
 def test_warmup_calls_encode_with_is_query_true():
     calls = []
 
@@ -125,13 +129,19 @@ def test_warmup_calls_encode_with_is_query_true():
 
 # --- load_chunk_lookup ------------------------------------------------------
 
+
 def test_load_chunk_lookup_round_trip(tmp_path):
     chunks_path = tmp_path / "chunks.jsonl"
     chunk = Chunk(
-        chunk_id="abc:0", song_id="abc", section=None,
-        text="hello", position=0, split_by="none",
+        chunk_id="abc:0",
+        song_id="abc",
+        section=None,
+        text="hello",
+        position=0,
+        split_by="none",
     )
     from dataclasses import asdict
+
     chunks_path.write_text(json.dumps(asdict(chunk)) + "\n", encoding="utf-8")
     lookup = load_chunk_lookup(chunks_path)
     assert lookup == {"abc:0": chunk}
@@ -144,12 +154,18 @@ def test_load_chunk_lookup_missing_file_raises(tmp_path):
 
 # --- load_song_corpus -------------------------------------------------------
 
+
 def test_load_song_corpus_round_trip(tmp_path):
     raw_path = tmp_path / "raw.jsonl"
     song = RawSong(
-        song_id="abc", artist="A", title="T", text_raw="lyrics here", source="test",
+        song_id="abc",
+        artist="A",
+        title="T",
+        text_raw="lyrics here",
+        source="test",
     )
     from dataclasses import asdict
+
     raw_path.write_text(json.dumps(asdict(song)) + "\n", encoding="utf-8")
     corpus = load_song_corpus(raw_path)
     assert corpus == {"abc": song}
@@ -161,6 +177,7 @@ def test_load_song_corpus_missing_file_raises(tmp_path):
 
 
 # --- load_index --------------------------------------------------------------
+
 
 def test_load_index_round_trip(tmp_path):
     build_index = NumpyIndex()

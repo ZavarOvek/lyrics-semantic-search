@@ -51,14 +51,28 @@ from dataclasses import dataclass
 from lyrics_search.core.text import collapse_whitespace
 
 CANONICAL_SECTIONS = [
-    "Verse", "Chorus", "Bridge", "Hook", "Outro",
-    "Pre-Chorus", "Intro", "Post-Chorus", "Refrain",
-    "Interlude", "Instrumental",
+    "Verse",
+    "Chorus",
+    "Bridge",
+    "Hook",
+    "Outro",
+    "Pre-Chorus",
+    "Intro",
+    "Post-Chorus",
+    "Refrain",
+    "Interlude",
+    "Instrumental",
 ]
 _SINGLE_WORD_CANON = {
-    "verse": "Verse", "chorus": "Chorus", "bridge": "Bridge", "hook": "Hook",
-    "outro": "Outro", "intro": "Intro", "refrain": "Refrain",
-    "interlude": "Interlude", "instrumental": "Instrumental",
+    "verse": "Verse",
+    "chorus": "Chorus",
+    "bridge": "Bridge",
+    "hook": "Hook",
+    "outro": "Outro",
+    "intro": "Intro",
+    "refrain": "Refrain",
+    "interlude": "Interlude",
+    "instrumental": "Instrumental",
 }
 _COMPOUND_CANON = {
     ("pre", "chorus"): "Pre-Chorus",
@@ -137,14 +151,14 @@ def classify_plain_label_line(line: str) -> str | None:
 class Segment:
     text: str
     section: str | None
-    split_by: str        # "bracket_tag" | "plain_label" | "blank_line" | "none"
+    split_by: str  # "bracket_tag" | "plain_label" | "blank_line" | "none"
     force_split: bool = False  # level-4 length packing applied on top
 
 
 @dataclass(frozen=True)
 class _Boundary:
-    start: int   # char offset where the tag/label itself starts
-    end: int     # char offset right after it (body starts here)
+    start: int  # char offset where the tag/label itself starts
+    end: int  # char offset right after it (body starts here)
     section: str | None
     split_by: str
 
@@ -153,6 +167,7 @@ def _strip_noise_brackets(text: str) -> str:
     def _sub(m: re.Match) -> str:
         kind, _ = classify_bracket(m.group(1))
         return "" if kind == "noise" else m.group(0)
+
     return BRACKET_RE.sub(_sub, text)
 
 
@@ -359,6 +374,5 @@ def chunk_song_with(
     if strategy == CHUNKING_WHOLE_SONG:
         return whole_song_segments(text)
     raise ValueError(
-        f"unknown chunking strategy {strategy!r}; "
-        f"expected one of {', '.join(CHUNKING_STRATEGIES)}"
+        f"unknown chunking strategy {strategy!r}; expected one of {', '.join(CHUNKING_STRATEGIES)}"
     )

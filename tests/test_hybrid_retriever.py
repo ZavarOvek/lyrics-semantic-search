@@ -2,14 +2,21 @@
 branches, branch_statuses visibility, best_chunk resolution (dense wins
 on overlap), and combined status handling when one or both branches
 degrade to empty_query/query_out_of_vocabulary."""
+
 from __future__ import annotations
 
 from lyrics_search.contracts import Chunk, Hit, SearchResult
 from lyrics_search.retrievers.hybrid import HybridRetriever
 
-CHUNK_A = Chunk(chunk_id="a:0", song_id="a", section=None, text="dense chunk a", position=0, split_by="none")
-CHUNK_B = Chunk(chunk_id="b:0", song_id="b", section=None, text="dense chunk b", position=0, split_by="none")
-CHUNK_C_LEX = Chunk(chunk_id="c:0", song_id="c", section=None, text="lexical chunk c", position=0, split_by="none")
+CHUNK_A = Chunk(
+    chunk_id="a:0", song_id="a", section=None, text="dense chunk a", position=0, split_by="none"
+)
+CHUNK_B = Chunk(
+    chunk_id="b:0", song_id="b", section=None, text="dense chunk b", position=0, split_by="none"
+)
+CHUNK_C_LEX = Chunk(
+    chunk_id="c:0", song_id="c", section=None, text="lexical chunk c", position=0, split_by="none"
+)
 
 
 class FakeRetriever:
@@ -21,14 +28,26 @@ class FakeRetriever:
 
 
 def test_hybrid_fuses_both_branches_via_rrf():
-    dense = FakeRetriever(SearchResult(
-        hits=[Hit(song_id="a", score=0.9, best_chunk=CHUNK_A), Hit(song_id="b", score=0.5, best_chunk=CHUNK_B)],
-        status="ok", query_norm=1.0,
-    ))
-    lexical = FakeRetriever(SearchResult(
-        hits=[Hit(song_id="b", score=3.0, best_chunk=CHUNK_B), Hit(song_id="a", score=1.0, best_chunk=CHUNK_A)],
-        status="ok", query_norm=2.0,
-    ))
+    dense = FakeRetriever(
+        SearchResult(
+            hits=[
+                Hit(song_id="a", score=0.9, best_chunk=CHUNK_A),
+                Hit(song_id="b", score=0.5, best_chunk=CHUNK_B),
+            ],
+            status="ok",
+            query_norm=1.0,
+        )
+    )
+    lexical = FakeRetriever(
+        SearchResult(
+            hits=[
+                Hit(song_id="b", score=3.0, best_chunk=CHUNK_B),
+                Hit(song_id="a", score=1.0, best_chunk=CHUNK_A),
+            ],
+            status="ok",
+            query_norm=2.0,
+        )
+    )
     hybrid = HybridRetriever(dense, lexical)
     result = hybrid.search("query", top_k=5)
     assert result.status == "ok"
@@ -37,27 +56,54 @@ def test_hybrid_fuses_both_branches_via_rrf():
 
 
 def test_hybrid_song_appearing_first_in_both_ranks_first():
-    dense = FakeRetriever(SearchResult(
-        hits=[Hit(song_id="a", score=0.9, best_chunk=CHUNK_A), Hit(song_id="b", score=0.5, best_chunk=CHUNK_B)],
-        status="ok", query_norm=1.0,
-    ))
-    lexical = FakeRetriever(SearchResult(
-        hits=[Hit(song_id="a", score=3.0, best_chunk=CHUNK_A), Hit(song_id="b", score=1.0, best_chunk=CHUNK_B)],
-        status="ok", query_norm=2.0,
-    ))
+    dense = FakeRetriever(
+        SearchResult(
+            hits=[
+                Hit(song_id="a", score=0.9, best_chunk=CHUNK_A),
+                Hit(song_id="b", score=0.5, best_chunk=CHUNK_B),
+            ],
+            status="ok",
+            query_norm=1.0,
+        )
+    )
+    lexical = FakeRetriever(
+        SearchResult(
+            hits=[
+                Hit(song_id="a", score=3.0, best_chunk=CHUNK_A),
+                Hit(song_id="b", score=1.0, best_chunk=CHUNK_B),
+            ],
+            status="ok",
+            query_norm=2.0,
+        )
+    )
     hybrid = HybridRetriever(dense, lexical)
     result = hybrid.search("query", top_k=5)
     assert result.hits[0].song_id == "a"
 
 
 def test_hybrid_dense_wins_best_chunk_on_overlap():
-    dense_only_chunk = Chunk(chunk_id="a:1", song_id="a", section=None, text="dense-picked chunk", position=1, split_by="none")
-    dense = FakeRetriever(SearchResult(
-        hits=[Hit(song_id="a", score=0.9, best_chunk=dense_only_chunk)], status="ok", query_norm=1.0,
-    ))
-    lexical = FakeRetriever(SearchResult(
-        hits=[Hit(song_id="a", score=3.0, best_chunk=CHUNK_A)], status="ok", query_norm=2.0,
-    ))
+    dense_only_chunk = Chunk(
+        chunk_id="a:1",
+        song_id="a",
+        section=None,
+        text="dense-picked chunk",
+        position=1,
+        split_by="none",
+    )
+    dense = FakeRetriever(
+        SearchResult(
+            hits=[Hit(song_id="a", score=0.9, best_chunk=dense_only_chunk)],
+            status="ok",
+            query_norm=1.0,
+        )
+    )
+    lexical = FakeRetriever(
+        SearchResult(
+            hits=[Hit(song_id="a", score=3.0, best_chunk=CHUNK_A)],
+            status="ok",
+            query_norm=2.0,
+        )
+    )
     hybrid = HybridRetriever(dense, lexical)
     result = hybrid.search("query", top_k=5)
     assert result.hits[0].best_chunk.chunk_id == "a:1"  # dense's pick, not lexical's
@@ -65,9 +111,13 @@ def test_hybrid_dense_wins_best_chunk_on_overlap():
 
 def test_hybrid_lexical_only_song_uses_lexical_best_chunk():
     dense = FakeRetriever(SearchResult(hits=[], status="ok", query_norm=1.0))
-    lexical = FakeRetriever(SearchResult(
-        hits=[Hit(song_id="c", score=2.0, best_chunk=CHUNK_C_LEX)], status="ok", query_norm=2.0,
-    ))
+    lexical = FakeRetriever(
+        SearchResult(
+            hits=[Hit(song_id="c", score=2.0, best_chunk=CHUNK_C_LEX)],
+            status="ok",
+            query_norm=2.0,
+        )
+    )
     hybrid = HybridRetriever(dense, lexical)
     result = hybrid.search("query", top_k=5)
     assert result.hits[0].song_id == "c"
@@ -96,9 +146,13 @@ def test_hybrid_partial_degradation_visible_in_branch_statuses():
     found keyword hits -- overall status should be "ok", with the
     degraded branch visible in branch_statuses, not silently hidden."""
     dense = FakeRetriever(SearchResult(hits=[], status="query_out_of_vocabulary", query_norm=0.0))
-    lexical = FakeRetriever(SearchResult(
-        hits=[Hit(song_id="c", score=2.0, best_chunk=CHUNK_C_LEX)], status="ok", query_norm=1.0,
-    ))
+    lexical = FakeRetriever(
+        SearchResult(
+            hits=[Hit(song_id="c", score=2.0, best_chunk=CHUNK_C_LEX)],
+            status="ok",
+            query_norm=1.0,
+        )
+    )
     hybrid = HybridRetriever(dense, lexical)
     result = hybrid.search("query", top_k=5)
     assert result.status == "ok"

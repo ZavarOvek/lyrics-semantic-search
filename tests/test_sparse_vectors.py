@@ -8,6 +8,7 @@ matrix really is sparse rather than a dense array that happens to work,
 that the cap is genuinely gone, and that every helper the pipeline routes
 through gives the same answer for both representations.
 """
+
 from __future__ import annotations
 
 import numpy as np

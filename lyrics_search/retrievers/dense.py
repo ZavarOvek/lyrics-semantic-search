@@ -5,6 +5,7 @@ Requires an already-loaded-and-warmed embedder and an already-loaded index
 (see retrievers/loading.py) -- this class does no loading/fitting/building
 itself, per SPEC-03 §1.
 """
+
 from __future__ import annotations
 
 from lyrics_search.contracts import Chunk, SearchResult

@@ -11,6 +11,7 @@ kinds of invariant the example tests can't fully demonstrate on their own:
   output must be a no-op. Checked here for chunk_song (core/sections.py),
   dedupe_blocks (core/dedupe.py), and normalize_for_dedupe (core/text.py).
 """
+
 from __future__ import annotations
 
 import string

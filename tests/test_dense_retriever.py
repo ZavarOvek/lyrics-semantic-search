@@ -1,5 +1,6 @@
 """SPEC-03 §3: DenseRetriever tests -- embed, search index, aggregate to
 songs; empty-query and OOV-query status handling."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -11,9 +12,30 @@ from lyrics_search.indexes.numpy_index import NumpyIndex
 from lyrics_search.retrievers.dense import DenseRetriever
 
 CHUNKS = [
-    Chunk(chunk_id="s1:0", song_id="s1", section="verse", text="walking alone in the rain", position=0, split_by="none"),
-    Chunk(chunk_id="s1:1", song_id="s1", section="chorus", text="thinking about you all night", position=1, split_by="none"),
-    Chunk(chunk_id="s2:0", song_id="s2", section=None, text="dancing in the summer sun", position=0, split_by="none"),
+    Chunk(
+        chunk_id="s1:0",
+        song_id="s1",
+        section="verse",
+        text="walking alone in the rain",
+        position=0,
+        split_by="none",
+    ),
+    Chunk(
+        chunk_id="s1:1",
+        song_id="s1",
+        section="chorus",
+        text="thinking about you all night",
+        position=1,
+        split_by="none",
+    ),
+    Chunk(
+        chunk_id="s2:0",
+        song_id="s2",
+        section=None,
+        text="dancing in the summer sun",
+        position=0,
+        split_by="none",
+    ),
 ]
 
 

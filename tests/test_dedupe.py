@@ -4,6 +4,7 @@ Previously only exercised incidentally (via real corpora that happened to
 contain duplicate blocks) -- no test directly asserted the duplicate-branch
 behavior itself.
 """
+
 from __future__ import annotations
 
 from lyrics_search.core.dedupe import dedupe_blocks

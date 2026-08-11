@@ -34,14 +34,14 @@ from lyrics_search.retrievers.loading import load_chunk_lookup, warmup
 
 t0 = time.time()
 chunk_lookup = load_chunk_lookup("data/full/sections/chunks.jsonl")
-print(f"chunk_lookup load: {time.time()-t0:.2f}s ({len(chunk_lookup)} chunks)")
+print(f"chunk_lookup load: {time.time() - t0:.2f}s ({len(chunk_lookup)} chunks)")
 
 t0 = time.time()
 vectors = np.load("data/full/sections/embeddings/bge-m3/vectors.npy").astype(np.float32)
 chunk_ids = json.load(open("data/full/sections/embeddings/bge-m3/chunk_ids.json", encoding="utf-8"))
 index = NumpyIndex()
 index.build(vectors, chunk_ids)
-print(f"index build: {time.time()-t0:.2f}s ({vectors.shape[0]} vectors, dim={vectors.shape[1]})")
+print(f"index build: {time.time() - t0:.2f}s ({vectors.shape[0]} vectors, dim={vectors.shape[1]})")
 
 t0 = time.time()
 embedder = BGEM3Embedder()
@@ -93,17 +93,25 @@ for q in queries:
     search_times_all.extend(search_times)
 
     print(
-        f"{q!r:40s} first_pass={first_pass_s*1000:6.1f}ms  "
-        f"repeat_avg={sum(repeat_times)/len(repeat_times)*1000:6.1f}ms  "
-        f"repeat_min={min(repeat_times)*1000:6.1f}ms  repeat_max={max(repeat_times)*1000:6.1f}ms  "
-        f"encode_avg={sum(encode_times)/len(encode_times)*1000:6.1f}ms  "
-        f"search_avg={sum(search_times)/len(search_times)*1000:6.1f}ms"
+        f"{q!r:40s} first_pass={first_pass_s * 1000:6.1f}ms  "
+        f"repeat_avg={sum(repeat_times) / len(repeat_times) * 1000:6.1f}ms  "
+        f"repeat_min={min(repeat_times) * 1000:6.1f}ms  repeat_max={max(repeat_times) * 1000:6.1f}ms  "
+        f"encode_avg={sum(encode_times) / len(encode_times) * 1000:6.1f}ms  "
+        f"search_avg={sum(search_times) / len(search_times) * 1000:6.1f}ms"
     )
 
 print()
 print(f"Total load time (index+embedder, one-time, incl. true cold start): {model_load_s:.2f}s")
-print(f"Mean first-pass query (first call per query, model already loaded+warmed): {sum(first_pass_times)/len(first_pass_times)*1000:.1f}ms")
-print(f"Mean repeat query ({REPEATS} repeats x {len(queries)} queries): {sum(repeat_times_all)/len(repeat_times_all)*1000:.1f}ms")
-print(f"  of which mean encode(): {sum(encode_times_all)/len(encode_times_all)*1000:.1f}ms")
-print(f"  of which mean index.search(): {sum(search_times_all)/len(search_times_all)*1000:.1f}ms")
-print(f"<100ms repeat-query target: {'PASS' if sum(repeat_times_all)/len(repeat_times_all)*1000 < 100 else 'FAIL'}")
+print(
+    f"Mean first-pass query (first call per query, model already loaded+warmed): {sum(first_pass_times) / len(first_pass_times) * 1000:.1f}ms"
+)
+print(
+    f"Mean repeat query ({REPEATS} repeats x {len(queries)} queries): {sum(repeat_times_all) / len(repeat_times_all) * 1000:.1f}ms"
+)
+print(f"  of which mean encode(): {sum(encode_times_all) / len(encode_times_all) * 1000:.1f}ms")
+print(
+    f"  of which mean index.search(): {sum(search_times_all) / len(search_times_all) * 1000:.1f}ms"
+)
+print(
+    f"<100ms repeat-query target: {'PASS' if sum(repeat_times_all) / len(repeat_times_all) * 1000 < 100 else 'FAIL'}"
+)

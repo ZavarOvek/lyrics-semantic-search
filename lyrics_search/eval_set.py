@@ -89,7 +89,8 @@ def load_eval_set(path: Path | str, known_song_ids: Iterable[str]) -> list[EvalQ
                     _fail(path, lineno, f"relevant_song_ids entry {song_id!r} is not a string")
                 if song_id not in known:
                     _fail(
-                        path, lineno,
+                        path,
+                        lineno,
                         f"relevant_song_id {song_id!r} is not in the corpus "
                         f"({len(known)} songs) -- it can never be retrieved, so "
                         f"leaving it in would score as a retrieval miss.",
@@ -99,11 +100,13 @@ def load_eval_set(path: Path | str, known_song_ids: Iterable[str]) -> list[EvalQ
             if query_type is not None and not isinstance(query_type, str):
                 _fail(path, lineno, f"`query_type` must be a string or absent, got {query_type!r}")
 
-            queries.append(EvalQuery(
-                query=query,
-                relevant_song_ids=tuple(dict.fromkeys(ids)),  # dedupe, keep order
-                query_type=query_type,
-            ))
+            queries.append(
+                EvalQuery(
+                    query=query,
+                    relevant_song_ids=tuple(dict.fromkeys(ids)),  # dedupe, keep order
+                    query_type=query_type,
+                )
+            )
 
     if not queries:
         raise ValueError(f"{path}: contains no queries (only {META_KEY} records or blanks)")

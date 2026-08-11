@@ -34,7 +34,7 @@ from lyrics_search.core.sections import CHUNKING_SECTIONS, CHUNKING_STRATEGIES, 
 # across both fields.
 _TRANSLATION_RE = re.compile(r"(?i)\btranslations?\b")
 
-MIN_SONG_WORDS = 10   # song-level: below this, treat as a stub/empty page
+MIN_SONG_WORDS = 10  # song-level: below this, treat as a stub/empty page
 MIN_CHUNK_CHARS = 15  # chunk-level: matches notes/phase0-findings.md threshold
 _INSTRUMENTAL_RE = re.compile(r"(?i)^\s*\[?\s*instrumental\s*\]?\s*$")
 
@@ -103,19 +103,28 @@ def run_preprocess(
 
     rejects: list[Reject] = []
     passed_song_ids: set[str] = set()
-    split_by_counts: dict[str, int] = {}                  # pre-filter, all segments
-    split_by_force_counts: dict[tuple[str, bool], int] = {}  # pre-filter, cross-tab (SPEC-02-PATCH item 6)
-    force_split_events = 0   # count of warn() calls, i.e. oversized segments that triggered level-4 packing
+    split_by_counts: dict[str, int] = {}  # pre-filter, all segments
+    split_by_force_counts: dict[
+        tuple[str, bool], int
+    ] = {}  # pre-filter, cross-tab (SPEC-02-PATCH item 6)
+    force_split_events = (
+        0  # count of warn() calls, i.e. oversized segments that triggered level-4 packing
+    )
     pre_filter_chunk_total = 0
     surviving_chunks: list[Chunk] = []
 
     for song in songs:
         reason = _song_reject_reason(song)
         if reason is not None:
-            rejects.append(Reject(
-                level="song", reason=reason, song_id=song.song_id,
-                artist=song.artist, title=song.title,
-            ))
+            rejects.append(
+                Reject(
+                    level="song",
+                    reason=reason,
+                    song_id=song.song_id,
+                    artist=song.artist,
+                    title=song.title,
+                )
+            )
             continue
         passed_song_ids.add(song.song_id)
 
@@ -133,29 +142,43 @@ def run_preprocess(
             split_by_force_counts[key] = split_by_force_counts.get(key, 0) + 1
 
             if position in dup_idx_set:
-                rejects.append(Reject(
-                    level="chunk", reason=RejectReason.CHUNK_DUPLICATE_BLOCK,
-                    song_id=song.song_id, artist=song.artist, title=song.title,
-                    position=position, text_preview=seg.text[:80],
-                ))
+                rejects.append(
+                    Reject(
+                        level="chunk",
+                        reason=RejectReason.CHUNK_DUPLICATE_BLOCK,
+                        song_id=song.song_id,
+                        artist=song.artist,
+                        title=song.title,
+                        position=position,
+                        text_preview=seg.text[:80],
+                    )
+                )
                 continue
             if len(seg.text) < MIN_CHUNK_CHARS:
-                rejects.append(Reject(
-                    level="chunk", reason=RejectReason.CHUNK_TOO_SHORT,
-                    song_id=song.song_id, artist=song.artist, title=song.title,
-                    position=position, text_preview=seg.text[:80],
-                ))
+                rejects.append(
+                    Reject(
+                        level="chunk",
+                        reason=RejectReason.CHUNK_TOO_SHORT,
+                        song_id=song.song_id,
+                        artist=song.artist,
+                        title=song.title,
+                        position=position,
+                        text_preview=seg.text[:80],
+                    )
+                )
                 continue
 
-            surviving_chunks.append(Chunk(
-                chunk_id=f"{song.song_id}:{position}",
-                song_id=song.song_id,
-                section=seg.section,
-                text=seg.text,
-                position=position,
-                split_by=seg.split_by,
-                force_split=seg.force_split,
-            ))
+            surviving_chunks.append(
+                Chunk(
+                    chunk_id=f"{song.song_id}:{position}",
+                    song_id=song.song_id,
+                    section=seg.section,
+                    text=seg.text,
+                    position=position,
+                    split_by=seg.split_by,
+                    force_split=seg.force_split,
+                )
+            )
 
     with open(chunks_path, "w", encoding="utf-8") as f:
         for c in surviving_chunks:
@@ -181,11 +204,15 @@ def run_preprocess(
     )
 
     print(f"Chunking strategy: {chunking}")
-    print(f"Songs: {len(songs)} total, {len(passed_song_ids)} passed, "
-          f"{len(song_rejects)} rejected at song level")
+    print(
+        f"Songs: {len(songs)} total, {len(passed_song_ids)} passed, "
+        f"{len(song_rejects)} rejected at song level"
+    )
     print(f"  is_translation: {translation_count}/{len(songs)}")
-    print(f"Chunks: {pre_filter_chunk_total} generated, {len(surviving_chunks)} kept, "
-          f"{len(chunk_rejects)} rejected at chunk level")
+    print(
+        f"Chunks: {pre_filter_chunk_total} generated, {len(surviving_chunks)} kept, "
+        f"{len(chunk_rejects)} rejected at chunk level"
+    )
     print(f"  split_by distribution: {split_by_counts}")
     # SPEC-02-PATCH item 5: this is an INFO-level count of the cascade
     # doing its job (level-4 length packing firing on top of a structural
@@ -194,8 +221,10 @@ def run_preprocess(
     # runners/embed.py for the *real* WARNING, checked against each
     # model's actual tokenizer max_length.
     print(f"  force_split events (level-4 length packing triggered): {force_split_events}")
-    print(f"  split_by x force_split cross-tab (pre-filter): "
-          f"{ {f'{k[0]}/force_split={k[1]}': v for k, v in sorted(split_by_force_counts.items())} }")
+    print(
+        f"  split_by x force_split cross-tab (pre-filter): "
+        f"{ {f'{k[0]}/force_split={k[1]}': v for k, v in sorted(split_by_force_counts.items())} }"
+    )
     print(f"Wrote {chunks_path} and {rejects_path}")
 
 

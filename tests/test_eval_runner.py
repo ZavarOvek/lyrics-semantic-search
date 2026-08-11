@@ -14,6 +14,7 @@ and never a metric value: retrieval quality on four songs is not a
 result, and EVAL-PREP is explicit that no comparison result is to be
 reported from this phase.
 """
+
 from __future__ import annotations
 
 import json
@@ -49,7 +50,10 @@ OCEAN = make_song_id("Deep Blue", "Ocean Waves Forever")
 
 def _config(chunking: str = "sections") -> ExperimentConfig:
     return ExperimentConfig(
-        corpus="demo", embedder="tfidf", index="numpy", chunking=chunking,
+        corpus="demo",
+        embedder="tfidf",
+        index="numpy",
+        chunking=chunking,
         retrieval=RetrievalConfig(mode="hybrid", top_k=10, return_n=5),
     )
 
@@ -73,8 +77,13 @@ def _default_records() -> list[dict]:
 
 def _chunk(song_id: str, position: int, split_by: str, force_split: bool = False) -> Chunk:
     return Chunk(
-        chunk_id=f"{song_id}:{position}", song_id=song_id, section=None,
-        text="whatever", position=position, split_by=split_by, force_split=force_split,
+        chunk_id=f"{song_id}:{position}",
+        song_id=song_id,
+        section=None,
+        text="whatever",
+        position=position,
+        split_by=split_by,
+        force_split=force_split,
     )
 
 
@@ -239,7 +248,8 @@ def test_the_query_type_slice_appears_only_when_records_carry_one(built_corpus):
     with_types = _write_eval_set(data_root / "typed.jsonl", typed)
     rows, _ = run_eval(config, with_types, data_root=data_root)
     assert {r.value: r.n for r in rows if r.dimension == "query_type"} == {
-        "literal": 2, "paraphrase": 2,
+        "literal": 2,
+        "paraphrase": 2,
     }
 
 
@@ -249,10 +259,13 @@ def test_a_query_with_relevant_songs_from_two_genres_lands_in_mixed(built_corpus
         for song_id, value in {SUNSHINE: "pop", RAIN: "rock"}.items():
             f.write(json.dumps({"song_id": song_id, "genre": value}) + "\n")
 
-    eval_set = _write_eval_set(data_root / "eval.jsonl", [
-        {"query": "sunshine and rain", "relevant_song_ids": [SUNSHINE, RAIN]},
-        {"query": "ocean waves", "relevant_song_ids": [OCEAN]},
-    ])
+    eval_set = _write_eval_set(
+        data_root / "eval.jsonl",
+        [
+            {"query": "sunshine and rain", "relevant_song_ids": [SUNSHINE, RAIN]},
+            {"query": "ocean waves", "relevant_song_ids": [OCEAN]},
+        ],
+    )
     rows, _ = run_eval(config, eval_set, data_root=data_root)
 
     genre_rows = {r.value: r.n for r in rows if r.dimension == "genre"}
@@ -261,9 +274,12 @@ def test_a_query_with_relevant_songs_from_two_genres_lands_in_mixed(built_corpus
 
 def test_an_unknown_relevant_song_id_fails_before_any_query_runs(built_corpus):
     config, data_root = built_corpus
-    eval_set = _write_eval_set(data_root / "eval.jsonl", [
-        {"query": "whatever", "relevant_song_ids": ["deadbeefdeadbeef"]},
-    ])
+    eval_set = _write_eval_set(
+        data_root / "eval.jsonl",
+        [
+            {"query": "whatever", "relevant_song_ids": ["deadbeefdeadbeef"]},
+        ],
+    )
     with pytest.raises(ValueError, match="deadbeefdeadbeef"):
         run_eval(config, eval_set, data_root=data_root)
 

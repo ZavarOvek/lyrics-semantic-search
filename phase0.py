@@ -49,12 +49,18 @@ def build_corpus() -> None:
     DEV_DIR.mkdir(parents=True, exist_ok=True)
     with open(CORPUS_PATH, "w", encoding="utf-8") as f:
         for row in sample.itertuples():
-            f.write(json.dumps({
-                "id": int(row.id),
-                "title": row.title,
-                "artist": row.artist,
-                "lyrics": row.lyrics,
-            }, ensure_ascii=False) + "\n")
+            f.write(
+                json.dumps(
+                    {
+                        "id": int(row.id),
+                        "title": row.title,
+                        "artist": row.artist,
+                        "lyrics": row.lyrics,
+                    },
+                    ensure_ascii=False,
+                )
+                + "\n"
+            )
     print(f"Saved {len(sample)} songs to {CORPUS_PATH}")
 
 
@@ -69,8 +75,10 @@ def load_model(device: str) -> SentenceTransformer:
     try:
         model = SentenceTransformer(MODEL_NAME, device=device)
     except torch.cuda.OutOfMemoryError:
-        sys.exit(f"Not enough VRAM to load {MODEL_NAME} on {device}. "
-                  f"Close other GPU processes or run on CPU.")
+        sys.exit(
+            f"Not enough VRAM to load {MODEL_NAME} on {device}. "
+            f"Close other GPU processes or run on CPU."
+        )
     if device == "cuda":
         model = model.half()
     model.encode(["warmup"], convert_to_numpy=True)  # trigger cudnn kernel compilation
@@ -84,13 +92,15 @@ def build_index(model: SentenceTransformer, device: str) -> None:
     chunks = []
     for song in songs:
         for i, chunk_text in enumerate(chunk_lyrics(song["lyrics"])):
-            chunks.append({
-                "song_id": song["id"],
-                "chunk_id": i,
-                "title": song["title"],
-                "artist": song["artist"],
-                "text": chunk_text,
-            })
+            chunks.append(
+                {
+                    "song_id": song["id"],
+                    "chunk_id": i,
+                    "title": song["title"],
+                    "artist": song["artist"],
+                    "text": chunk_text,
+                }
+            )
     print(f"{len(songs)} songs -> {len(chunks)} chunks")
 
     with open(CHUNKS_PATH, "w", encoding="utf-8") as f:

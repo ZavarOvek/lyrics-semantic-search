@@ -22,6 +22,7 @@ match *count*) -- this is a hybrid-specific convention, documented here
 since SearchResult.query_norm's docstring describes the single-retriever
 cases only.
 """
+
 from __future__ import annotations
 
 from lyrics_search.contracts import Hit, SearchResult
@@ -49,7 +50,10 @@ class HybridRetriever:
 
         if ranked_lists:
             status = "ok"
-        elif branch_statuses["dense"] == "empty_query" and branch_statuses["lexical"] == "empty_query":
+        elif (
+            branch_statuses["dense"] == "empty_query"
+            and branch_statuses["lexical"] == "empty_query"
+        ):
             status = "empty_query"
         else:
             status = "query_out_of_vocabulary"

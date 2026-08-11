@@ -55,7 +55,7 @@ from lyrics_search.retrievers.loading import load_chunk_lookup, load_song_corpus
 from lyrics_search.runners.search import build_retriever
 
 MIXED = "mixed"
-UNKNOWN = "(unknown)"   # metadata absent for this song, distinct from disagreeing
+UNKNOWN = "(unknown)"  # metadata absent for this song, distinct from disagreeing
 OVERALL = "(overall)"
 
 # Ordered so the printed table reads left to right from strictest to
@@ -72,6 +72,7 @@ METRICS: dict[str, callable] = {
 @dataclass(frozen=True)
 class QueryOutcome:
     """One query's ranked song_ids plus its per-metric scores."""
+
     query: EvalQuery
     ranked: tuple[str, ...]
     status: str
@@ -138,10 +139,7 @@ def run_queries(
 
 
 def _row(dimension: str, value: str, outcomes: list[QueryOutcome]) -> SliceRow:
-    stats = {
-        name: mean_ci([o.scores[name] for o in outcomes])
-        for name in METRICS
-    }
+    stats = {name: mean_ci([o.scores[name] for o in outcomes]) for name in METRICS}
     return SliceRow(dimension, value, len(outcomes), stats)
 
 
@@ -191,8 +189,10 @@ def run_eval(
         genre = load_genre_lookup(data_root, config.corpus)
         slicers["genre"] = {q: _query_label(q, genre) for q in queries}
     else:
-        print(f"[genre] slice skipped -- no {genre_path(data_root, config.corpus)} "
-              f"(build it with scripts/build_genre_lookup.py)")
+        print(
+            f"[genre] slice skipped -- no {genre_path(data_root, config.corpus)} "
+            f"(build it with scripts/build_genre_lookup.py)"
+        )
 
     if any(q.query_type for q in queries):
         slicers["query_type"] = {q: q.query_type or "(none)" for q in queries}
@@ -225,8 +225,10 @@ def _print_report(
         # or tfidf arm's OOV rate is not mistaken for poor ranking.
         print(f"non-ok query statuses (scored as 0): {non_ok}")
     if config.chunking == CHUNKING_WHOLE_SONG:
-        print("note: the whole_song arm has one chunk per song, so the "
-              "split_by x force_split slice degenerates to a single cell.")
+        print(
+            "note: the whole_song arm has one chunk per song, so the "
+            "split_by x force_split slice degenerates to a single cell."
+        )
 
     header = f"{'dimension':<24}{'value':<28}{'n':>5}  " + "  ".join(
         f"{name:>22}" for name in METRICS
@@ -259,8 +261,12 @@ def main() -> None:
 
     if args.json_out:
         payload = [
-            {"dimension": r.dimension, "value": r.value, "n": r.n,
-             "stats": {k: list(v) for k, v in r.stats.items()}}
+            {
+                "dimension": r.dimension,
+                "value": r.value,
+                "n": r.n,
+                "stats": {k: list(v) for k, v in r.stats.items()},
+            }
             for r in rows
         ]
         with open(args.json_out, "w", encoding="utf-8") as f:

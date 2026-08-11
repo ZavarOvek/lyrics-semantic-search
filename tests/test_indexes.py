@@ -11,6 +11,7 @@ of NumpyIndex being the only index that takes sparse input: identical
 scores from either representation of the same vectors, and FaissIndex
 refusing sparse loudly instead of densifying.
 """
+
 from __future__ import annotations
 
 import numpy as np

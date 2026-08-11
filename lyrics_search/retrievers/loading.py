@@ -24,6 +24,7 @@ mandatory for every embedder including tfidf (which has no cudnn cost but
 still benefits from catching a broken fit at load time instead of on the
 first real user query).
 """
+
 from __future__ import annotations
 
 import hashlib

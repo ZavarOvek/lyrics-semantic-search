@@ -7,6 +7,7 @@ by name (and, for fasttext-avg, that its required params are declared).
 tfidf and the index factories are cheap enough to actually
 resolve/instantiate.
 """
+
 from __future__ import annotations
 
 import pytest

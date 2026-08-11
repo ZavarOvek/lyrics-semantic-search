@@ -21,6 +21,7 @@ This module is deliberately dependency-free (Path only) so build, search,
 eval and one-off scripts can all agree on the layout without importing a
 runner.
 """
+
 from __future__ import annotations
 
 from pathlib import Path

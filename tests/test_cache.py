@@ -2,6 +2,7 @@
 checks, and atomic write helpers (including the directory-swap path,
 whose necessity was discovered empirically: Windows os.replace() cannot
 replace a non-empty directory)."""
+
 from __future__ import annotations
 
 import json
@@ -24,6 +25,7 @@ from lyrics_search.cache import (
 
 
 # --- canonical_json / compute_cache_key -------------------------------------
+
 
 def test_canonical_json_is_key_order_independent():
     a = canonical_json({"x": 1, "y": 2})
@@ -64,6 +66,7 @@ def test_root_input_hash_is_stable_sentinel():
 
 # --- sidecar meta / flat-stage freshness ------------------------------------
 
+
 def test_sidecar_meta_path_naming():
     assert sidecar_meta_path("data/dev/raw.jsonl").name == "raw.jsonl.meta.json"
 
@@ -83,7 +86,9 @@ def test_flat_stage_fresh_after_write_sidecar_meta(tmp_path):
     artifact = tmp_path / "raw.jsonl"
     artifact.write_text("data")
     key = compute_cache_key({"seed": 1}, ROOT_INPUT_HASH)
-    write_sidecar_meta(artifact, cache_key=key, input_hash=ROOT_INPUT_HASH, stage_config={"seed": 1})
+    write_sidecar_meta(
+        artifact, cache_key=key, input_hash=ROOT_INPUT_HASH, stage_config={"seed": 1}
+    )
     assert is_flat_stage_fresh(artifact, key) is True
 
 
@@ -91,7 +96,9 @@ def test_flat_stage_not_fresh_on_key_mismatch(tmp_path):
     artifact = tmp_path / "raw.jsonl"
     artifact.write_text("data")
     key = compute_cache_key({"seed": 1}, ROOT_INPUT_HASH)
-    write_sidecar_meta(artifact, cache_key=key, input_hash=ROOT_INPUT_HASH, stage_config={"seed": 1})
+    write_sidecar_meta(
+        artifact, cache_key=key, input_hash=ROOT_INPUT_HASH, stage_config={"seed": 1}
+    )
     other_key = compute_cache_key({"seed": 2}, ROOT_INPUT_HASH)
     assert is_flat_stage_fresh(artifact, other_key) is False
 
@@ -110,9 +117,7 @@ def test_write_sidecar_meta_round_trip_fields(tmp_path):
     artifact = tmp_path / "chunks.jsonl"
     artifact.write_text("data")
     key = compute_cache_key({"x": 1}, "upstream-key")
-    write_sidecar_meta(
-        artifact, cache_key=key, input_hash="upstream-key", stage_config={"x": 1}
-    )
+    write_sidecar_meta(artifact, cache_key=key, input_hash="upstream-key", stage_config={"x": 1})
     with open(sidecar_meta_path(artifact), encoding="utf-8") as f:
         meta = json.load(f)
     assert meta["cache_key"] == key
@@ -121,6 +126,7 @@ def test_write_sidecar_meta_round_trip_fields(tmp_path):
 
 
 # --- directory-stage freshness ----------------------------------------------
+
 
 def test_dir_stage_not_fresh_when_dir_missing(tmp_path):
     assert is_dir_stage_fresh(tmp_path / "bge-m3", "somekey") is False
@@ -146,6 +152,7 @@ def test_dir_stage_not_fresh_on_pre_spec03_meta_without_cache_key(tmp_path):
 
 # --- atomic_write_bytes ------------------------------------------------------
 
+
 def test_atomic_write_bytes_writes_content(tmp_path):
     p = tmp_path / "out.bin"
     atomic_write_bytes(p, b"hello")
@@ -167,6 +174,7 @@ def test_atomic_write_bytes_overwrites_existing(tmp_path):
 
 
 # --- atomic_replace_dir -------------------------------------------------------
+
 
 def test_atomic_replace_dir_first_build_no_existing_target(tmp_path):
     final_dir = tmp_path / "target"

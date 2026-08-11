@@ -15,7 +15,7 @@ from scipy import sparse
 
 @dataclass(frozen=True)
 class RawSong:
-    song_id: str        # sha1(f"{norm(artist)}|{norm(title)}")[:16]
+    song_id: str  # sha1(f"{norm(artist)}|{norm(title)}")[:16]
     artist: str
     title: str
     text_raw: str
@@ -25,12 +25,12 @@ class RawSong:
 
 @dataclass(frozen=True)
 class Chunk:
-    chunk_id: str        # f"{song_id}:{position}"
+    chunk_id: str  # f"{song_id}:{position}"
     song_id: str
     section: str | None  # canonical section type, or None
     text: str
     position: int
-    split_by: str         # "bracket_tag" | "plain_label" | "blank_line" | "none"
+    split_by: str  # "bracket_tag" | "plain_label" | "blank_line" | "none"
     force_split: bool = False  # SPEC-02-PATCH item 6: level-4 length packing also applied
 
 
@@ -101,9 +101,7 @@ class Embedder(Protocol):
     name: str
     dim: int
 
-    def encode(
-        self, texts: Sequence[str], *, is_query: bool
-    ) -> np.ndarray | sparse.spmatrix: ...
+    def encode(self, texts: Sequence[str], *, is_query: bool) -> np.ndarray | sparse.spmatrix: ...
 
 
 class Retriever(Protocol):

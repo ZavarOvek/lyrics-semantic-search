@@ -7,6 +7,7 @@ metric behaves consistently, it does not say the metric is the one that
 was asked for. Hand-computed values are what catch an off-by-one in the
 nDCG discount or a denominator that quietly became min(|relevant|, k).
 """
+
 from __future__ import annotations
 
 import math
@@ -35,8 +36,9 @@ def ranked_and_relevant(draw):
     not an edge case, so the set is not drawn as a subset."""
     ranked = draw(ranked_strategy)
     pool = ranked + draw(st.lists(song_id_strategy, min_size=0, max_size=4))
-    relevant = draw(st.sets(st.sampled_from(pool) if pool else song_id_strategy,
-                            min_size=0, max_size=5))
+    relevant = draw(
+        st.sets(st.sampled_from(pool) if pool else song_id_strategy, min_size=0, max_size=5)
+    )
     return ranked, relevant
 
 
@@ -84,8 +86,7 @@ def test_promoting_a_relevant_song_never_decreases_any_metric(case, k):
 # --- REQUIRED PROPERTY 3: empty result lists score 0 -------------------
 
 
-@given(st.sets(song_id_strategy, min_size=0, max_size=5),
-       st.integers(min_value=0, max_value=10))
+@given(st.sets(song_id_strategy, min_size=0, max_size=5), st.integers(min_value=0, max_value=10))
 def test_an_empty_ranked_list_scores_zero_everywhere(relevant, k):
     assert recall_at_k([], relevant, k) == 0.0
     assert reciprocal_rank([], relevant) == 0.0

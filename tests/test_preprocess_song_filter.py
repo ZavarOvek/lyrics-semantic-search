@@ -8,6 +8,7 @@ records through the real code path (not just the pure `_song_reject_reason`
 helper in isolation) and asserts each lands in rejects.jsonl with
 level="song" and the expected reason.
 """
+
 from __future__ import annotations
 
 import json
@@ -40,14 +41,27 @@ def _song(artist: str, title: str, text_raw: str) -> RawSong:
 
 BAD_SONGS = {
     "empty": (_song("Test Artist", "Empty Page", ""), RejectReason.SONG_EMPTY_TEXT),
-    "whitespace_only": (_song("Test Artist", "Whitespace Page", "   \n\n  \t  "), RejectReason.SONG_EMPTY_TEXT),
-    "too_short": (_song("Test Artist", "Stub Page", "just three words"), RejectReason.SONG_TOO_SHORT),
-    "instrumental_bracket": (_song("Test Artist", "Interlude", "[Instrumental]"), RejectReason.SONG_INSTRUMENTAL_ONLY),
-    "instrumental_bare": (_song("Test Artist", "Interlude 2", "  instrumental  "), RejectReason.SONG_INSTRUMENTAL_ONLY),
+    "whitespace_only": (
+        _song("Test Artist", "Whitespace Page", "   \n\n  \t  "),
+        RejectReason.SONG_EMPTY_TEXT,
+    ),
+    "too_short": (
+        _song("Test Artist", "Stub Page", "just three words"),
+        RejectReason.SONG_TOO_SHORT,
+    ),
+    "instrumental_bracket": (
+        _song("Test Artist", "Interlude", "[Instrumental]"),
+        RejectReason.SONG_INSTRUMENTAL_ONLY,
+    ),
+    "instrumental_bare": (
+        _song("Test Artist", "Interlude 2", "  instrumental  "),
+        RejectReason.SONG_INSTRUMENTAL_ONLY,
+    ),
 }
 
 
 # --- Unit level: the pure decision function in isolation -------------------
+
 
 @pytest.mark.parametrize("name", BAD_SONGS.keys())
 def test_song_reject_reason_pure(name):
@@ -61,6 +75,7 @@ def test_song_reject_reason_pure_good_song_passes():
 
 
 # --- Integration level: through the real run_preprocess() I/O path ---------
+
 
 def test_run_preprocess_rejects_bad_songs_at_song_level(tmp_path):
     good = _song("Real Artist", "Real Song", GOOD_TEXT)

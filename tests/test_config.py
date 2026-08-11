@@ -1,4 +1,5 @@
 """SPEC-03 §5: config tests -- YAML -> validated ExperimentConfig."""
+
 from __future__ import annotations
 
 import pytest

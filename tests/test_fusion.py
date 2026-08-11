@@ -1,4 +1,5 @@
 """SPEC-03 §3.3: Reciprocal Rank Fusion property/unit tests."""
+
 from __future__ import annotations
 
 from lyrics_search.core.fusion import RRF_DEFAULT_K, reciprocal_rank_fusion

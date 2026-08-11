@@ -62,9 +62,7 @@ def build_genre_lookup(corpus: str, data_root: Path | str = "data") -> Path:
 
     wanted = _corpus_song_ids(raw_path(data_root, corpus))
 
-    path = hf_hub_download(
-        repo_id=DEFAULT_REPO_ID, filename=DEFAULT_FILENAME, repo_type="dataset"
-    )
+    path = hf_hub_download(repo_id=DEFAULT_REPO_ID, filename=DEFAULT_FILENAME, repo_type="dataset")
     df = pd.read_parquet(path).sort_values("id").reset_index(drop=True)
 
     genre: dict[str, str] = {}
@@ -96,12 +94,16 @@ def build_genre_lookup(corpus: str, data_root: Path | str = "data") -> Path:
 
     missing = len(wanted) - len(genre)
     print(f"Wrote {out_path}")
-    print(f"  source column: {SOURCE_COLUMN!r} from {DEFAULT_REPO_ID} (dataset field, not inferred)")
+    print(
+        f"  source column: {SOURCE_COLUMN!r} from {DEFAULT_REPO_ID} (dataset field, not inferred)"
+    )
     print(f"  corpus songs: {len(wanted)}, covered: {len(genre)}, uncovered: {missing}")
     print(f"  distribution: {dict(sorted(counts.items(), key=lambda kv: -kv[1]))}")
     if conflicts:
-        print(f"  song_id collisions with disagreeing tags: {len(conflicts)} "
-              f"(first kept); e.g. {conflicts[:3]}")
+        print(
+            f"  song_id collisions with disagreeing tags: {len(conflicts)} "
+            f"(first kept); e.g. {conflicts[:3]}"
+        )
     return out_path
 
 

@@ -12,6 +12,7 @@ test_whole_song_aggregation_needs_no_special_casing pins that: the same
 `aggregate_chunks_to_songs` used by the chunked arm returns one hit per
 song when handed one chunk per song.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -111,10 +112,30 @@ def test_dispatch_rejects_an_unknown_strategy():
 
 def test_whole_song_aggregation_needs_no_special_casing():
     chunk_scores = [
-        (Chunk(chunk_id="a:0", song_id="a", section=None, text="x",
-               position=0, split_by="none", force_split=False), 0.9),
-        (Chunk(chunk_id="b:0", song_id="b", section=None, text="y",
-               position=0, split_by="none", force_split=False), 0.4),
+        (
+            Chunk(
+                chunk_id="a:0",
+                song_id="a",
+                section=None,
+                text="x",
+                position=0,
+                split_by="none",
+                force_split=False,
+            ),
+            0.9,
+        ),
+        (
+            Chunk(
+                chunk_id="b:0",
+                song_id="b",
+                section=None,
+                text="y",
+                position=0,
+                split_by="none",
+                force_split=False,
+            ),
+            0.4,
+        ),
     ]
     hits = aggregate_chunks_to_songs(chunk_scores)
     assert [h.song_id for h in hits] == ["a", "b"]
@@ -127,7 +148,10 @@ def test_whole_song_aggregation_needs_no_special_casing():
 
 def test_config_selects_the_arm_end_to_end(tmp_path):
     config = ExperimentConfig(
-        corpus="demo", chunking="whole_song", embedder="tfidf", index="numpy",
+        corpus="demo",
+        chunking="whole_song",
+        embedder="tfidf",
+        index="numpy",
         retrieval=RetrievalConfig(mode="dense", top_k=10, return_n=5),
     )
     work_dir = run_build(config, data_root=tmp_path, source=JsonlFileSource(GOLDEN))

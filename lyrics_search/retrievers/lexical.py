@@ -29,6 +29,7 @@ highest-scoring chunk (ties broken by earliest position) -- i.e. "which
 part of this song most resembles the query", using the same idf weights
 that ranked the song in the first place.
 """
+
 from __future__ import annotations
 
 from lyrics_search.contracts import Chunk, Hit, RawSong, SearchResult

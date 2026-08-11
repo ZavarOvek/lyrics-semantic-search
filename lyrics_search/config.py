@@ -18,6 +18,7 @@ registry itself is resolved deep inside a build/search run.
       params:
         vectors_path: data/models/fasttext/cc.en.300.vec
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -85,7 +86,8 @@ def _validate_registry_names(config: ExperimentConfig) -> None:
             f"Registered embedders: {known_embedders}"
         )
     missing_params = [
-        p for p in registry.required_embedder_params(config.embedder.name)
+        p
+        for p in registry.required_embedder_params(config.embedder.name)
         if p not in config.embedder.params
     ]
     if missing_params:
@@ -96,6 +98,5 @@ def _validate_registry_names(config: ExperimentConfig) -> None:
     known_indexes = registry.registered_index_names()
     if config.index not in known_indexes:
         raise ValueError(
-            f"Unknown index {config.index!r} in config. "
-            f"Registered indexes: {known_indexes}"
+            f"Unknown index {config.index!r} in config. Registered indexes: {known_indexes}"
         )

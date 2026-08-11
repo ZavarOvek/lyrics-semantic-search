@@ -7,6 +7,7 @@ test_dense_retriever.py/test_lexical_retriever.py/test_hybrid_retriever.py,
 so this file is about the *pipeline wiring* (build writes what search
 reads, cache-skip on rebuild, --force bypasses it), not retrieval quality.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -21,7 +22,9 @@ GOLDEN = Path(__file__).parent / "golden" / "spec03_mini_corpus.jsonl"
 
 def _config(mode: str = "hybrid") -> ExperimentConfig:
     return ExperimentConfig(
-        corpus="dev", embedder="tfidf", index="numpy",
+        corpus="dev",
+        embedder="tfidf",
+        index="numpy",
         retrieval=RetrievalConfig(mode=mode, top_k=10, return_n=5),
     )
 
@@ -31,8 +34,10 @@ def test_build_then_search_finds_matching_song(tmp_path):
     run_build(config, data_root=tmp_path, source=JsonlFileSource(GOLDEN))
     result, _timing = run_search(config, "sunshine morning", data_root=tmp_path)
     assert result.status == "ok"
-    assert result.hits[0].best_chunk.text.lower().startswith("sunshine sunshine") or \
-        "sunshine" in result.hits[0].best_chunk.text.lower()
+    assert (
+        result.hits[0].best_chunk.text.lower().startswith("sunshine sunshine")
+        or "sunshine" in result.hits[0].best_chunk.text.lower()
+    )
 
 
 def test_build_then_search_dense_mode(tmp_path):
@@ -83,7 +88,9 @@ def test_empty_query_end_to_end(tmp_path):
 
 def test_return_n_trims_hits(tmp_path):
     config = ExperimentConfig(
-        corpus="dev", embedder="tfidf", index="numpy",
+        corpus="dev",
+        embedder="tfidf",
+        index="numpy",
         retrieval=RetrievalConfig(mode="dense", top_k=10, return_n=1),
     )
     run_build(config, data_root=tmp_path, source=JsonlFileSource(GOLDEN))
@@ -106,7 +113,9 @@ def test_build_then_search_demo_corpus(tmp_path):
     and builds/searches through the exact same pipeline as `dev`/`full` --
     only the on-disk directory name differs (<data_root>/demo)."""
     config = ExperimentConfig(
-        corpus="demo", embedder="tfidf", index="numpy",
+        corpus="demo",
+        embedder="tfidf",
+        index="numpy",
         retrieval=RetrievalConfig(mode="hybrid", top_k=10, return_n=5),
     )
     work_dir = run_build(config, data_root=tmp_path, source=JsonlFileSource(GOLDEN))

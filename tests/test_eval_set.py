@@ -6,6 +6,7 @@ queries, and an unknown song_id must not become a silent miss. The rest
 is ordinary shape validation, tested mainly to confirm the failure names
 the offending line.
 """
+
 from __future__ import annotations
 
 import json
@@ -29,10 +30,13 @@ def _write(tmp_path: Path, records: list) -> Path:
 
 
 def test_loads_a_well_formed_set(tmp_path):
-    path = _write(tmp_path, [
-        {"query": "one", "relevant_song_ids": ["aaa"], "query_type": "paraphrase"},
-        {"query": "two", "relevant_song_ids": ["bbb", "ccc"]},
-    ])
+    path = _write(
+        tmp_path,
+        [
+            {"query": "one", "relevant_song_ids": ["aaa"], "query_type": "paraphrase"},
+            {"query": "two", "relevant_song_ids": ["bbb", "ccc"]},
+        ],
+    )
     queries = load_eval_set(path, KNOWN)
     assert queries == [
         EvalQuery("one", ("aaa",), "paraphrase"),
@@ -41,10 +45,13 @@ def test_loads_a_well_formed_set(tmp_path):
 
 
 def test_meta_records_are_skipped_not_scored(tmp_path):
-    path = _write(tmp_path, [
-        {"_meta": "methodology warning"},
-        {"query": "one", "relevant_song_ids": ["aaa"]},
-    ])
+    path = _write(
+        tmp_path,
+        [
+            {"_meta": "methodology warning"},
+            {"query": "one", "relevant_song_ids": ["aaa"]},
+        ],
+    )
     queries = load_eval_set(path, KNOWN)
     assert len(queries) == 1
     assert queries[0].query == "one"
@@ -53,10 +60,13 @@ def test_meta_records_are_skipped_not_scored(tmp_path):
 def test_a_meta_record_is_skipped_even_when_it_also_looks_like_a_query(tmp_path):
     """`_meta` is the signal, not the absence of other fields -- a record
     carrying both must still not be counted."""
-    path = _write(tmp_path, [
-        {"_meta": "note", "query": "x", "relevant_song_ids": ["aaa"]},
-        {"query": "real", "relevant_song_ids": ["aaa"]},
-    ])
+    path = _write(
+        tmp_path,
+        [
+            {"_meta": "note", "query": "x", "relevant_song_ids": ["aaa"]},
+            {"query": "real", "relevant_song_ids": ["aaa"]},
+        ],
+    )
     assert [q.query for q in load_eval_set(path, KNOWN)] == ["real"]
 
 
@@ -70,10 +80,13 @@ def test_the_bootstrap_golden_file_loads_with_its_meta_record_skipped():
 
 
 def test_an_unknown_song_id_fails_loudly_and_names_it(tmp_path):
-    path = _write(tmp_path, [
-        {"query": "one", "relevant_song_ids": ["aaa"]},
-        {"query": "two", "relevant_song_ids": ["aaa", "deadbeef"]},
-    ])
+    path = _write(
+        tmp_path,
+        [
+            {"query": "one", "relevant_song_ids": ["aaa"]},
+            {"query": "two", "relevant_song_ids": ["aaa", "deadbeef"]},
+        ],
+    )
     with pytest.raises(ValueError) as exc:
         load_eval_set(path, KNOWN)
     message = str(exc.value)
@@ -95,15 +108,18 @@ def test_duplicate_relevant_ids_are_collapsed(tmp_path):
     assert load_eval_set(path, KNOWN)[0].relevant_song_ids == ("aaa", "bbb")
 
 
-@pytest.mark.parametrize("record,fragment", [
-    ({"relevant_song_ids": ["aaa"]}, "`query`"),
-    ({"query": "  ", "relevant_song_ids": ["aaa"]}, "`query`"),
-    ({"query": "one"}, "relevant_song_ids"),
-    ({"query": "one", "relevant_song_ids": []}, "relevant_song_ids"),
-    ({"query": "one", "relevant_song_ids": "aaa"}, "relevant_song_ids"),
-    ({"query": "one", "relevant_song_ids": [1]}, "not a string"),
-    ({"query": "one", "relevant_song_ids": ["aaa"], "query_type": 7}, "`query_type`"),
-])
+@pytest.mark.parametrize(
+    "record,fragment",
+    [
+        ({"relevant_song_ids": ["aaa"]}, "`query`"),
+        ({"query": "  ", "relevant_song_ids": ["aaa"]}, "`query`"),
+        ({"query": "one"}, "relevant_song_ids"),
+        ({"query": "one", "relevant_song_ids": []}, "relevant_song_ids"),
+        ({"query": "one", "relevant_song_ids": "aaa"}, "relevant_song_ids"),
+        ({"query": "one", "relevant_song_ids": [1]}, "not a string"),
+        ({"query": "one", "relevant_song_ids": ["aaa"], "query_type": 7}, "`query_type`"),
+    ],
+)
 def test_malformed_records_fail_loudly(tmp_path, record, fragment):
     path = _write(tmp_path, [record])
     with pytest.raises(ValueError, match=fragment.replace("`", "")):

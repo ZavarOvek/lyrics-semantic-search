@@ -80,9 +80,7 @@ class FaissIndex:
             raise RuntimeError("FaissIndex.build() must be called before search()")
         q = np.ascontiguousarray(query_vector, dtype=np.float32).reshape(1, -1)
         scores, idx = self._index.search(q, top_k)
-        return [
-            (self._chunk_ids[i], float(s)) for s, i in zip(scores[0], idx[0]) if i != -1
-        ]
+        return [(self._chunk_ids[i], float(s)) for s, i in zip(scores[0], idx[0]) if i != -1]
 
     def save(self, dir_path: Path | str) -> None:
         import faiss
