@@ -30,6 +30,13 @@ Four dimensions:
     note when that file is absent, since it is optional analysis metadata
     built by a separate one-off script, not a pipeline artifact.
   - `query_type` -- from the eval set itself, when its records carry one.
+  - `stratum` -- likewise from the eval set. This one is different in
+    kind from the others: it is a property of the *sample*, not of the
+    songs. `structure` and `translation` are deliberately over-sampled
+    (EVAL-AUTO §1), so the `(overall)` row of a full set describes no
+    real population. Hence `--stratum main`, which restricts the run to
+    the proportionally-sampled part and makes `(overall)` mean something
+    again. The over-sampled strata are run and reported separately.
 
 Every row reports `n` alongside a bootstrap confidence interval
 (core/metrics.py). Small slices will not show significant differences,
@@ -47,7 +54,13 @@ from lyrics_search.config import ExperimentConfig
 from lyrics_search.contracts import Chunk, RawSong
 from lyrics_search.core.metrics import mean_ci, ndcg_at_k, recall_at_k, reciprocal_rank
 from lyrics_search.core.sections import CHUNKING_WHOLE_SONG
-from lyrics_search.eval_set import EvalQuery, load_eval_set
+from lyrics_search.eval_set import (
+    STRATA,
+    STRATUM_STRUCTURE,
+    STRATUM_TRANSLATION,
+    EvalQuery,
+    load_eval_set,
+)
 from lyrics_search.genre import genre_path, load_genre_lookup
 from lyrics_search.paths import raw_path as _raw_path
 from lyrics_search.paths import work_dir as _work_dir
@@ -164,16 +177,45 @@ def build_table(
     return rows
 
 
+def _select_stratum(queries: list[EvalQuery], stratum: str) -> list[EvalQuery]:
+    """Keep only `stratum`, failing loudly rather than returning nothing.
+
+    Both failure modes here would otherwise be silent and produce a
+    plausible-looking table: an eval set with no `stratum` field at all
+    would filter down to zero queries, and a typo'd stratum name would do
+    the same. Either would look, downstream, like an empty run.
+    """
+    if stratum not in STRATA:
+        raise ValueError(f"--stratum must be one of {list(STRATA)}, got {stratum!r}")
+    present = {q.stratum for q in queries}
+    if present == {None}:
+        raise ValueError(
+            f"--stratum {stratum} was requested but no query in the eval set "
+            f"carries a stratum. This set predates stratified sampling; run it "
+            f"without --stratum."
+        )
+    selected = [q for q in queries if q.stratum == stratum]
+    if not selected:
+        raise ValueError(
+            f"--stratum {stratum} selected 0 of {len(queries)} queries "
+            f"(strata present: {sorted(s for s in present if s)})"
+        )
+    return selected
+
+
 def run_eval(
     config: ExperimentConfig,
     eval_set_path: Path | str,
     data_root: Path | str = "data",
+    stratum: str | None = None,
 ) -> tuple[list[SliceRow], list[QueryOutcome]]:
     work_dir = _work_dir(data_root, config.corpus, config.chunking)
     chunk_lookup = load_chunk_lookup(work_dir / "chunks.jsonl")
     songs: dict[str, RawSong] = load_song_corpus(_raw_path(data_root, config.corpus))
 
     queries = load_eval_set(eval_set_path, songs.keys())
+    if stratum is not None:
+        queries = _select_stratum(queries, stratum)
     outcomes, load_s = run_queries(config, queries, data_root=data_root)
 
     by_song = _chunks_by_song(chunk_lookup)
@@ -197,8 +239,13 @@ def run_eval(
     if any(q.query_type for q in queries):
         slicers["query_type"] = {q: q.query_type or "(none)" for q in queries}
 
+    # Skipped when the run is already restricted to one stratum: the slice
+    # would be a single row duplicating `(overall)`.
+    if stratum is None and any(q.stratum for q in queries):
+        slicers["stratum"] = {q: q.stratum or "(none)" for q in queries}
+
     rows = build_table(outcomes, slicers)
-    _print_report(config, eval_set_path, rows, outcomes, load_s)
+    _print_report(config, eval_set_path, rows, outcomes, load_s, stratum)
     return rows, outcomes
 
 
@@ -208,13 +255,20 @@ def _print_report(
     rows: list[SliceRow],
     outcomes: list[QueryOutcome],
     load_s: float,
+    stratum: str | None = None,
 ) -> None:
     print(
         f"corpus={config.corpus} chunking={config.chunking} "
         f"embedder={config.embedder.name} index={config.index} "
         f"mode={config.retrieval.mode} top_k={config.retrieval.top_k}"
     )
-    print(f"eval set: {eval_set_path} ({len(outcomes)} queries), load={load_s:.1f}s")
+    scope = f" stratum={stratum}" if stratum else ""
+    print(f"eval set: {eval_set_path}{scope} ({len(outcomes)} queries), load={load_s:.1f}s")
+    if stratum in (STRATUM_STRUCTURE, STRATUM_TRANSLATION):
+        print(
+            f"note: the {stratum} stratum is deliberately over-sampled and is "
+            f"rarer than this in the corpus. Do not merge it into the headline table."
+        )
 
     non_ok = {}
     for o in outcomes:
@@ -253,11 +307,19 @@ def main() -> None:
     parser.add_argument("--config", required=True, help="path to an ExperimentConfig YAML")
     parser.add_argument("--eval-set", required=True, help="path to an eval-set JSONL")
     parser.add_argument("--data-root", default="data")
+    parser.add_argument(
+        "--stratum",
+        default=None,
+        choices=list(STRATA),
+        help="restrict the run to one sampling stratum; the headline table is `main`",
+    )
     parser.add_argument("--json-out", default=None, help="also write the table as JSON")
     args = parser.parse_args()
 
     config = load_config(args.config)
-    rows, _outcomes = run_eval(config, args.eval_set, data_root=args.data_root)
+    rows, _outcomes = run_eval(
+        config, args.eval_set, data_root=args.data_root, stratum=args.stratum
+    )
 
     if args.json_out:
         payload = [

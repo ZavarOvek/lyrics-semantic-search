@@ -148,3 +148,68 @@ def test_a_set_with_no_queries_at_all_fails(tmp_path):
 def test_a_missing_file_names_the_path(tmp_path):
     with pytest.raises(FileNotFoundError, match=re.escape("nope.jsonl")):
         load_eval_set(tmp_path / "nope.jsonl", KNOWN)
+
+
+# --- stratum, and strict field validation (EVAL-AUTO §1, §3) ---
+
+
+def test_stratum_is_loaded_and_defaults_to_none(tmp_path):
+    path = _write(
+        tmp_path,
+        [
+            {"query": "one", "relevant_song_ids": ["aaa"], "stratum": "translation"},
+            {"query": "two", "relevant_song_ids": ["bbb"]},
+        ],
+    )
+    loaded = load_eval_set(path, KNOWN)
+    assert [q.stratum for q in loaded] == ["translation", None]
+
+
+@pytest.mark.parametrize("stratum", ["main", "structure", "translation"])
+def test_every_declared_stratum_is_accepted(tmp_path, stratum):
+    path = _write(tmp_path, [{"query": "one", "relevant_song_ids": ["aaa"], "stratum": stratum}])
+    assert load_eval_set(path, KNOWN)[0].stratum == stratum
+
+
+def test_an_unrecognised_stratum_fails_rather_than_becoming_its_own_row(tmp_path):
+    path = _write(tmp_path, [{"query": "one", "relevant_song_ids": ["aaa"], "stratum": "maim"}])
+    with pytest.raises(ValueError, match="stratum"):
+        load_eval_set(path, KNOWN)
+
+
+def test_an_unknown_field_fails_and_names_itself(tmp_path):
+    """A misspelled field must not be ignored.
+
+    This is the whole point of the strict check: with `startum` silently
+    dropped, every query loads with `stratum=None`, the run completes,
+    and the headline table is computed over a sample that was supposed to
+    be filtered. Nothing in the output would look wrong.
+    """
+    path = _write(tmp_path, [{"query": "one", "relevant_song_ids": ["aaa"], "startum": "main"}])
+    with pytest.raises(ValueError, match="startum"):
+        load_eval_set(path, KNOWN)
+
+
+def test_unknown_fields_inside_meta_records_are_still_skipped(tmp_path):
+    """`_meta` is documentation and may carry anything."""
+    path = _write(
+        tmp_path,
+        [
+            {"_meta": "notes", "generated_by": "x", "seed": 1},
+            {"query": "one", "relevant_song_ids": ["aaa"]},
+        ],
+    )
+    assert len(load_eval_set(path, KNOWN)) == 1
+
+
+def test_the_bootstrap_golden_set_still_loads_without_strata(tmp_path):
+    """The pre-stratum file must keep working; strictness is about
+    unknown fields, not about newly-required ones."""
+    ids = set()
+    with open(GOLDEN, encoding="utf-8") as f:
+        for line in f:
+            record = json.loads(line)
+            if "_meta" not in record:
+                ids.update(record["relevant_song_ids"])
+    loaded = load_eval_set(GOLDEN, ids)
+    assert loaded and all(q.stratum is None for q in loaded)

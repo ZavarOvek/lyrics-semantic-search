@@ -2,16 +2,26 @@
 
 One JSONL record per query:
 
-    {"query": "...", "relevant_song_ids": ["..."], "query_type": "..."}
+    {"query": "...", "relevant_song_ids": ["..."], "query_type": "...",
+     "stratum": "..."}
 
-`query_type` is optional so the pre-existing bootstrap file
-(`tests/golden/spec03_eval_queries.jsonl`, which has none) still loads;
-the real eval set is expected to carry it, since it is what item 6's
-per-type breakdown slices on. Nothing here decides *what* the types are
--- the query scheme is designed separately (EVAL-PREP "What not to do"),
-and this loader is deliberately agnostic to it.
+`query_type` and `stratum` are both optional so the pre-existing
+bootstrap file (`tests/golden/spec03_eval_queries.jsonl`, which has
+neither) still loads; the real eval set carries both, since they are what
+the per-type and per-stratum breakdowns slice on. Nothing here decides
+*what* the types or strata are -- the query scheme is designed separately
+(EVAL-PREP "What not to do"), and this loader is deliberately agnostic to
+it.
 
-Two rules, both about not silently miscounting:
+`stratum` exists because the automatic track over-samples on purpose
+(EVAL-AUTO §1): 400 songs stratified by genre, plus 50 chosen for their
+chunk structure and 50 translations, both of which are far rarer than
+that in the population. The headline table is computed on `main` alone,
+and the over-sampled strata are reported beside it. Mixing them would
+report a number that describes no population -- so which stratum a query
+belongs to has to survive into the loaded object, not just into the file.
+
+Three rules, all about not silently miscounting:
 
 `_meta` records are skipped. The convention already exists in the
 bootstrap file, whose leading record carries a warning that its queries
@@ -26,6 +36,13 @@ it scores as a miss, and a typo or a stale eval set therefore looks
 exactly like a retriever that is bad at that query. Recall in particular
 would be understated by a fixed factor with nothing in the output
 suggesting why.
+
+Unknown *fields* fail loudly too, for the same reason one level up. A
+loader that ignores what it does not recognise turns a misspelled
+`startum` into a file where every query silently belongs to no stratum;
+the run then completes, prints a table, and the table is wrong in a way
+nothing in it reveals. Rejecting the field costs one clear error message
+and makes that outcome impossible.
 """
 
 from __future__ import annotations
@@ -37,12 +54,20 @@ from pathlib import Path
 
 META_KEY = "_meta"
 
+STRATUM_MAIN = "main"
+STRATUM_STRUCTURE = "structure"
+STRATUM_TRANSLATION = "translation"
+STRATA = (STRATUM_MAIN, STRATUM_STRUCTURE, STRATUM_TRANSLATION)
+
+KNOWN_FIELDS = frozenset({"query", "relevant_song_ids", "query_type", "stratum"})
+
 
 @dataclass(frozen=True)
 class EvalQuery:
     query: str
     relevant_song_ids: tuple[str, ...]
     query_type: str | None = None
+    stratum: str | None = None
 
 
 def _fail(path: Path, lineno: int, message: str) -> None:
@@ -77,6 +102,17 @@ def load_eval_set(path: Path | str, known_song_ids: Iterable[str]) -> list[EvalQ
             if META_KEY in record:
                 continue
 
+            unknown = sorted(set(record) - KNOWN_FIELDS)
+            if unknown:
+                _fail(
+                    path,
+                    lineno,
+                    f"unknown field(s) {unknown} -- known fields are "
+                    f"{sorted(KNOWN_FIELDS)}. Ignoring an unrecognised field "
+                    f"would let a misspelling produce a table that is wrong "
+                    f"without looking wrong.",
+                )
+
             query = record.get("query")
             if not isinstance(query, str) or not query.strip():
                 _fail(path, lineno, f"`query` must be a non-empty string, got {query!r}")
@@ -100,11 +136,25 @@ def load_eval_set(path: Path | str, known_song_ids: Iterable[str]) -> list[EvalQ
             if query_type is not None and not isinstance(query_type, str):
                 _fail(path, lineno, f"`query_type` must be a string or absent, got {query_type!r}")
 
+            # Constrained to the known strata, unlike `query_type`. The
+            # strata are fixed by the sampling design and each one has a
+            # defined relationship to the population; an unrecognised value
+            # is a sampling bug, and silently making it its own row would
+            # split a stratum in two and halve both `n`s.
+            stratum = record.get("stratum")
+            if stratum is not None and stratum not in STRATA:
+                _fail(
+                    path,
+                    lineno,
+                    f"`stratum` must be one of {list(STRATA)} or absent, got {stratum!r}",
+                )
+
             queries.append(
                 EvalQuery(
                     query=query,
                     relevant_song_ids=tuple(dict.fromkeys(ids)),  # dedupe, keep order
                     query_type=query_type,
+                    stratum=stratum,
                 )
             )
 

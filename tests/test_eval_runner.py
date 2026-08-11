@@ -34,6 +34,7 @@ from lyrics_search.runners.eval import (
     UNKNOWN,
     QueryOutcome,
     _query_label,
+    _select_stratum,
     _song_split_label,
     build_table,
     run_eval,
@@ -297,3 +298,68 @@ def test_the_whole_song_arm_degenerates_to_a_single_split_cell(tmp_path, capsys)
     assert split_rows[0].value == "none/force_split=False"
     assert split_rows[0].n == len(outcomes)
     assert "degenerates to a single cell" in capsys.readouterr().out
+
+
+# --- stratum (EVAL-AUTO §1, §5) ----------------------------------------
+
+
+def _strat(name: str | None) -> EvalQuery:
+    return EvalQuery(query=f"q-{name}", relevant_song_ids=("aaa",), stratum=name)
+
+
+def test_select_stratum_keeps_only_the_requested_one():
+    queries = [_strat("main"), _strat("translation"), _strat("main")]
+    assert len(_select_stratum(queries, "main")) == 2
+
+
+def test_select_stratum_rejects_a_name_that_is_not_a_stratum():
+    with pytest.raises(ValueError, match="must be one of"):
+        _select_stratum([_strat("main")], "maim")
+
+
+def test_select_stratum_on_a_set_with_no_strata_says_so_instead_of_returning_nothing():
+    """The pre-stratum bootstrap set filters to zero queries.
+
+    Downstream that is indistinguishable from an empty run, so it has to
+    fail here, naming the actual cause.
+    """
+    with pytest.raises(ValueError, match="no query in the eval set"):
+        _select_stratum([_strat(None), _strat(None)], "main")
+
+
+def test_select_stratum_reports_which_strata_were_actually_present():
+    with pytest.raises(ValueError, match="translation"):
+        _select_stratum([_strat("translation")], "main")
+
+
+def test_the_stratum_slice_appears_only_when_records_carry_one(built_corpus):
+    config, data_root = built_corpus
+
+    without = _write_eval_set(data_root / "nostrat.jsonl", _default_records())
+    rows, _ = run_eval(config, without, data_root=data_root)
+    assert not any(r.dimension == "stratum" for r in rows)
+
+    records = _default_records()
+    for i, record in enumerate(r for r in records if "query" in r):
+        record["stratum"] = "main" if i % 2 else "translation"
+    path = _write_eval_set(data_root / "strat.jsonl", records)
+    rows, _ = run_eval(config, path, data_root=data_root)
+    assert {r.value: r.n for r in rows if r.dimension == "stratum"} == {
+        "main": 2,
+        "translation": 2,
+    }
+
+
+def test_restricting_to_one_stratum_drops_the_now_redundant_slice(built_corpus):
+    """With the run already filtered, a stratum slice would just repeat
+    the overall row."""
+    config, data_root = built_corpus
+    records = _default_records()
+    for i, record in enumerate(r for r in records if "query" in r):
+        record["stratum"] = "main" if i % 2 else "translation"
+    path = _write_eval_set(data_root / "strat2.jsonl", records)
+
+    rows, outcomes = run_eval(config, path, data_root=data_root, stratum="main")
+    assert len(outcomes) == 2
+    assert not any(r.dimension == "stratum" for r in rows)
+    assert next(r for r in rows if r.dimension == OVERALL).n == 2
