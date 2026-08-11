@@ -27,11 +27,15 @@ real fasttext vectors file to exist on disk -- both are real, large
 artifacts deliberately excluded from git (see the README's "Data &
 copyright": `data/` is never committed), so this test skips cleanly,
 rather than failing, when they're absent (a fresh clone, or CI without
-the real corpus built).
+the real corpus built). The fasttext-avg half additionally needs gensim,
+which ships in requirements-full.txt only; see
+`_missing_real_data_reason` for why each precondition is answered per
+embedder rather than once for both.
 """
 
 from __future__ import annotations
 
+import importlib.util
 import subprocess
 import sys
 from pathlib import Path
@@ -94,18 +98,34 @@ def _run_subprocess(embedder_name: str, out_path: Path) -> None:
     )
 
 
-def _missing_real_data_reason() -> str | None:
-    if not FASTTEXT_VECTORS.exists():
-        return f"missing real fasttext vectors file: {FASTTEXT_VECTORS}"
-    for name, path in FIT_PATHS.items():
-        if not path.exists():
-            return f"missing real data/dev embed artifact for {name!r}: {path}"
+def _missing_real_data_reason(embedder_name: str) -> str | None:
+    """Why `embedder_name`'s check cannot run here, or None if it can.
+
+    Answered per embedder, not once for both: `tfidf` needs neither gensim
+    nor the fastText vectors, so gating it on either would turn a test that
+    can really run into a silent skip -- the exact failure this function
+    exists to prevent.
+
+    gensim is checked because it ships in requirements-full.txt only. On a
+    machine that has the real corpus but a base install, the fasttext-avg
+    subprocess would otherwise die with ModuleNotFoundError and surface as
+    a failure rather than an honest skip. CI never sees it, having no real
+    data to get that far.
+    """
+    fit_path = FIT_PATHS[embedder_name]
+    if not fit_path.exists():
+        return f"missing real data/dev embed artifact for {embedder_name!r}: {fit_path}"
+    if embedder_name == "fasttext-avg":
+        if importlib.util.find_spec("gensim") is None:
+            return "gensim is not installed (requirements-full.txt, not requirements.txt)"
+        if not FASTTEXT_VECTORS.exists():
+            return f"missing real fasttext vectors file: {FASTTEXT_VECTORS}"
     return None
 
 
 @pytest.mark.parametrize("embedder_name", ["tfidf", "fasttext-avg"])
 def test_cross_process_fit_state_identical_vectors(embedder_name: str, tmp_path: Path) -> None:
-    reason = _missing_real_data_reason()
+    reason = _missing_real_data_reason(embedder_name)
     if reason:
         pytest.skip(f"requires a real data/dev build -- {reason}")
 
