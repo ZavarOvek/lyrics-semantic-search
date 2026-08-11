@@ -14,7 +14,7 @@ eval -- this function must not need special-casing to support that).
 
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 from lyrics_search.contracts import Chunk, Hit
 

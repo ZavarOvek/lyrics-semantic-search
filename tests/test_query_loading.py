@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 
 import numpy as np
 import pytest
@@ -56,7 +57,7 @@ def test_load_fitted_embedder_round_trip(tmp_path):
 
 def test_load_fitted_embedder_missing_meta_raises(tmp_path):
     fresh = TfidfEmbedder()
-    with pytest.raises(FileNotFoundError, match="meta.json"):
+    with pytest.raises(FileNotFoundError, match=re.escape("meta.json")):
         load_fitted_embedder(fresh, tmp_path)
 
 
@@ -64,7 +65,7 @@ def test_load_fitted_embedder_missing_fitted_state_file_raises(tmp_path):
     _build_fitted_tfidf(tmp_path)
     (tmp_path / "tfidf" / "fitted_state.joblib").unlink()
     fresh = TfidfEmbedder()
-    with pytest.raises(FileNotFoundError, match="fitted_state.joblib"):
+    with pytest.raises(FileNotFoundError, match=re.escape("fitted_state.joblib")):
         load_fitted_embedder(fresh, tmp_path)
 
 

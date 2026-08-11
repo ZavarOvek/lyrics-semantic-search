@@ -10,6 +10,7 @@ the offending line.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -145,5 +146,5 @@ def test_a_set_with_no_queries_at_all_fails(tmp_path):
 
 
 def test_a_missing_file_names_the_path(tmp_path):
-    with pytest.raises(FileNotFoundError, match="nope.jsonl"):
+    with pytest.raises(FileNotFoundError, match=re.escape("nope.jsonl")):
         load_eval_set(tmp_path / "nope.jsonl", KNOWN)

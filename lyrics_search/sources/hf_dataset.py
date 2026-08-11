@@ -8,8 +8,8 @@ metadata; not retried, see notes/phase0-findings.md).
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Iterator
 
 from lyrics_search.contracts import RawSong
 from lyrics_search.core.text import make_song_id

@@ -18,7 +18,7 @@ each song_id back to a Hit/best_chunk after fusion.
 
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 RRF_DEFAULT_K = 60
 

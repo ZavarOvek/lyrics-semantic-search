@@ -12,7 +12,10 @@ from dataclasses import dataclass
 from enum import Enum
 
 
-class RejectReason(str, Enum):
+# Not `StrEnum`: `str(RejectReason.X)` is "RejectReason.X" here but "x" under
+# StrEnum, and these values are written into rejects.jsonl. Switching would
+# silently change the on-disk format.
+class RejectReason(str, Enum):  # noqa: UP042
     # level="song"
     SONG_EMPTY_TEXT = "song_empty_text"
     SONG_TOO_SHORT = "song_too_short"

@@ -35,8 +35,8 @@ fallback, per SPEC-00 §3.2 (fail loudly).
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 from scipy import sparse
 from sklearn.feature_extraction.text import TfidfVectorizer

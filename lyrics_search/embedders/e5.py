@@ -9,7 +9,7 @@ rather than being pushed onto every caller.
 from __future__ import annotations
 
 import sys
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy as np
 import torch

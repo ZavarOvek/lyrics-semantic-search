@@ -23,7 +23,7 @@ the multi-GB vector file just to check.
 
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
 
 _EMBEDDERS: dict[str, Callable[..., object]] = {}
 _EMBEDDER_REQUIRED_PARAMS: dict[str, tuple[str, ...]] = {}

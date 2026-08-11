@@ -89,7 +89,11 @@ def test_run_preprocess_rejects_bad_songs_at_song_level(tmp_path):
     out_dir = tmp_path / "out"
     run_preprocess(raw_path, out_dir)
 
-    rejects = [json.loads(line) for line in open(out_dir / "rejects.jsonl", encoding="utf-8")]
+    rejects = [
+        json.loads(line)
+        for line in (out_dir / "rejects.jsonl").read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
     song_rejects = {r["song_id"]: r for r in rejects if r["level"] == "song"}
 
     # Every bad song must appear, exactly once, with the right reason.
@@ -99,7 +103,11 @@ def test_run_preprocess_rejects_bad_songs_at_song_level(tmp_path):
         assert song_rejects[song.song_id]["reason"] == expected_reason.value, name
 
     # The good song must survive and produce at least one chunk.
-    chunks = [json.loads(line) for line in open(out_dir / "chunks.jsonl", encoding="utf-8")]
+    chunks = [
+        json.loads(line)
+        for line in (out_dir / "chunks.jsonl").read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
     assert any(c["song_id"] == good.song_id for c in chunks)
 
     # And no bad song's id should appear as a chunk's song_id.

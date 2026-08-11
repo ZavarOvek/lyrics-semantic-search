@@ -1,14 +1,19 @@
-import json, time
-import numpy as np
+import json
 import sys
+import time
+from pathlib import Path
+
+import numpy as np
 
 sys.path.insert(0, ".")
-from lyrics_search.indexes.numpy_index import NumpyIndex
-from lyrics_search.indexes.faiss_index import FaissIndex
 from lyrics_search.embedders.bge_m3 import BGEM3Embedder
+from lyrics_search.indexes.faiss_index import FaissIndex
+from lyrics_search.indexes.numpy_index import NumpyIndex
 
 vectors = np.load("data/full/sections/embeddings/bge-m3/vectors.npy").astype(np.float32)
-chunk_ids = json.load(open("data/full/sections/embeddings/bge-m3/chunk_ids.json", encoding="utf-8"))
+chunk_ids = json.loads(
+    Path("data/full/sections/embeddings/bge-m3/chunk_ids.json").read_text(encoding="utf-8")
+)
 print(f"Loaded {vectors.shape} vectors")
 
 t0 = time.time()
@@ -43,11 +48,13 @@ for q in queries:
     t0 = time.time()
     np_res = npidx.search(qv, 10)
     np_times.append(time.time() - t0)
+
     t0 = time.time()
     f_res = fidx.search(qv, 10)
     f_times.append(time.time() - t0)
-    np_ids = set(cid for cid, _ in np_res)
-    f_ids = set(cid for cid, _ in f_res)
+
+    np_ids = {cid for cid, _ in np_res}
+    f_ids = {cid for cid, _ in f_res}
     overlap = len(np_ids & f_ids)
     overlaps.append(overlap)
     print(f"\nQuery: {q!r}  top10 overlap={overlap}/10")

@@ -6,9 +6,6 @@ replace a non-empty directory)."""
 from __future__ import annotations
 
 import json
-import os
-
-import pytest
 
 from lyrics_search.cache import (
     ROOT_INPUT_HASH,
@@ -22,7 +19,6 @@ from lyrics_search.cache import (
     sidecar_meta_path,
     write_sidecar_meta,
 )
-
 
 # --- canonical_json / compute_cache_key -------------------------------------
 

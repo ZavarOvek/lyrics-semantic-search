@@ -3,7 +3,6 @@ songs; empty-query and OOV-query status handling."""
 
 from __future__ import annotations
 
-import numpy as np
 import pytest
 
 from lyrics_search.contracts import Chunk

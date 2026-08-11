@@ -20,15 +20,16 @@
 # project built" (search) and "the pretrained model's own inference cost"
 # (encode) -- SPEC-03-PATCH §2's explicit ask.
 import json
-import time
 import sys
+import time
+from pathlib import Path
 
 sys.path.insert(0, ".")
 
 import numpy as np
 
-from lyrics_search.indexes.numpy_index import NumpyIndex
 from lyrics_search.embedders.bge_m3 import BGEM3Embedder
+from lyrics_search.indexes.numpy_index import NumpyIndex
 from lyrics_search.retrievers.dense import DenseRetriever
 from lyrics_search.retrievers.loading import load_chunk_lookup, warmup
 
@@ -38,7 +39,9 @@ print(f"chunk_lookup load: {time.time() - t0:.2f}s ({len(chunk_lookup)} chunks)"
 
 t0 = time.time()
 vectors = np.load("data/full/sections/embeddings/bge-m3/vectors.npy").astype(np.float32)
-chunk_ids = json.load(open("data/full/sections/embeddings/bge-m3/chunk_ids.json", encoding="utf-8"))
+chunk_ids = json.loads(
+    Path("data/full/sections/embeddings/bge-m3/chunk_ids.json").read_text(encoding="utf-8")
+)
 index = NumpyIndex()
 index.build(vectors, chunk_ids)
 print(f"index build: {time.time() - t0:.2f}s ({vectors.shape[0]} vectors, dim={vectors.shape[1]})")

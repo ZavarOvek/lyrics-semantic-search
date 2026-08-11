@@ -78,7 +78,7 @@ class LexicalRetriever:
 
         scores = self._bm25.get_scores(query_tokens)
         ranked = sorted(
-            ((sid, float(s)) for sid, s in zip(self._song_ids, scores) if s > 0.0),
+            ((sid, float(s)) for sid, s in zip(self._song_ids, scores, strict=True) if s > 0.0),
             key=lambda pair: (-pair[1], pair[0]),
         )[:top_k]
 

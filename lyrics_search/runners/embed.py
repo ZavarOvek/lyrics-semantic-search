@@ -153,7 +153,7 @@ def run_embed(
 
     keep_mask = ~zero_mask
     vectors = select_rows(vectors, keep_mask)
-    chunk_ids = [cid for cid, keep in zip(chunk_ids, keep_mask) if keep]
+    chunk_ids = [cid for cid, keep in zip(chunk_ids, keep_mask, strict=True) if keep]
     kept_norms = norms[keep_mask]
     norm_ok = bool(np.allclose(kept_norms, 1.0, atol=1e-2)) if len(kept_norms) else True
 
@@ -167,7 +167,7 @@ def run_embed(
     token_max_observed = None
     token_overflow_count = 0
     if tokenizer_max_length is not None and hasattr(embedder, "token_lengths"):
-        surviving_texts = [t for t, keep in zip(texts, keep_mask) if keep]
+        surviving_texts = [t for t, keep in zip(texts, keep_mask, strict=True) if keep]
         lengths = embedder.token_lengths(surviving_texts, is_query=False)
         token_max_observed = max(lengths) if lengths else 0
         overflow_idx = [i for i, n in enumerate(lengths) if n > tokenizer_max_length]

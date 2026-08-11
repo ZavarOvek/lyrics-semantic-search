@@ -137,7 +137,7 @@ def test_unknown_and_a_real_label_still_disagree_and_give_mixed():
 
 
 def _outcome(query: EvalQuery) -> QueryOutcome:
-    return QueryOutcome(query, (), "ok", {name: 0.0 for name in METRICS})
+    return QueryOutcome(query, (), "ok", dict.fromkeys(METRICS, 0.0))
 
 
 def test_build_table_always_emits_an_overall_row_first():

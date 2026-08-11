@@ -23,8 +23,8 @@ NotImplementedError instead of a silently missing source.
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Iterator
 
 from lyrics_search.contracts import RawSong
 

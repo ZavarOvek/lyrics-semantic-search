@@ -33,7 +33,7 @@ Conventions, all four of which EVAL-PREP §4 pins down as property tests:
 
 from __future__ import annotations
 
-from typing import Iterable, Sequence
+from collections.abc import Iterable, Sequence
 
 import numpy as np
 
@@ -98,7 +98,11 @@ def ndcg_at_k(ranked: Sequence[str], relevant: Iterable[str], k: int = 10) -> fl
     ideal_gains = [1.0] * min(len(relevant), k)
 
     idcg = _dcg(ideal_gains)
-    if idcg == 0.0:
+    # Unreachable via the public API: the guard above leaves `relevant`
+    # non-empty and k >= 1, so ideal_gains has at least one 1.0 and
+    # _dcg([1.0]) == 1.0. Kept as a free guard against future edits to the
+    # branches above; not covered because faking it would test a mock.
+    if idcg == 0.0:  # pragma: no cover
         return 0.0
     return _dcg(gains) / idcg
 

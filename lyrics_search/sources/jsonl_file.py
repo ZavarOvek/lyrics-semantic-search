@@ -9,9 +9,9 @@ previously produced raw.jsonl without re-hitting the network/HF Hub.
 from __future__ import annotations
 
 import json
+from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterator
 
 from lyrics_search.contracts import RawSong
 from lyrics_search.core.text import make_song_id

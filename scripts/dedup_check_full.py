@@ -14,7 +14,7 @@ from __future__ import annotations
 import json
 from collections import defaultdict
 
-from lyrics_search.core.text import normalize_for_id, hash_block
+from lyrics_search.core.text import hash_block, normalize_for_id
 
 RAW_PATH = "data/full/raw.jsonl"
 
@@ -41,7 +41,7 @@ def main() -> None:
     print(f"Total songs read: {n}")
 
     dupe_ids = {k: v for k, v in by_song_id.items() if len(v) > 1}
-    print(f"\n1. song_id collisions (normalized artist|title, same as ingest's own key):")
+    print("\n1. song_id collisions (normalized artist|title, same as ingest's own key):")
     print(
         f"   {len(dupe_ids)} colliding song_id groups covering {sum(len(v) for v in dupe_ids.values())} records"
     )
@@ -49,7 +49,7 @@ def main() -> None:
         print(f"   - {k}: {[(r['artist'], r['title']) for r in v]}")
 
     dupe_at = {k: v for k, v in by_norm_artist_title.items() if len(v) > 1}
-    print(f"\n2. normalized (artist,title) collisions (independent cross-check):")
+    print("\n2. normalized (artist,title) collisions (independent cross-check):")
     print(
         f"   {len(dupe_at)} colliding groups covering {sum(len(v) for v in dupe_at.values())} records"
     )
@@ -57,12 +57,12 @@ def main() -> None:
 
     dupe_text = {k: v for k, v in by_text_hash.items() if len(v) > 1}
     total_dupe_text_records = sum(len(v) for v in dupe_text.values())
-    print(f"\n3. exact text_raw duplicates (different metadata, identical lyrics):")
+    print("\n3. exact text_raw duplicates (different metadata, identical lyrics):")
     print(f"   {len(dupe_text)} colliding text groups covering {total_dupe_text_records} records")
     print(
         f"   ({total_dupe_text_records - len(dupe_text)} 'extra' records that a text-based dedup would remove)"
     )
-    for k, v in list(dupe_text.items())[:15]:
+    for _k, v in list(dupe_text.items())[:15]:
         pairs = [(r["artist"], r["title"], r["song_id"]) for r in v]
         print(f"   - {pairs}")
 

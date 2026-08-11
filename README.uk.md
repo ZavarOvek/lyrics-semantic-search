@@ -1,5 +1,10 @@
 [English](README.md) | **Українська**
 
+[![CI](https://github.com/ZavarOvek/lyrics-semantic-search/actions/workflows/ci.yml/badge.svg)](https://github.com/ZavarOvek/lyrics-semantic-search/actions/workflows/ci.yml)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+
 # lyrics-semantic-search
 
 Семантичний пошук текстів пісень: dense-пошук за ембедингами, lexical-пошук
@@ -272,7 +277,7 @@ pytest -q                                                    # весь набі
 pytest -q --cov=lyrics_search.core --cov-report=term-missing # покриття core/
 ```
 
-266 тестів загалом. З базовим `requirements.txt` 261 проходить і 5
+268 тестів загалом. З базовим `requirements.txt` 261 проходить і 5
 пропускаються: 3 потребують `faiss-cpu` (з `requirements-full.txt`);
 інші 2 потребують реальної збірки корпусу `data/dev` та файлу
 fasttext-векторів — це реальні дані, навмисно виключені з git (див.

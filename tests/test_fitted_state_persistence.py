@@ -43,7 +43,11 @@ from lyrics_search.core.vectors import as_dense_vector
 
 QUERY = "walking alone in the rain thinking about you"
 REPO_ROOT = Path(__file__).resolve().parent.parent
-PY = REPO_ROOT / ".venv" / "Scripts" / "python.exe"
+# The subprocess must run under the *same* interpreter as pytest. A hardcoded
+# ".venv/Scripts/python.exe" is Windows-only, so on Linux/macOS — and in CI —
+# the path never exists and these tests skip silently even when the real data
+# is present. A silent skip in a green run is indistinguishable from a pass.
+PY = sys.executable
 
 FASTTEXT_VECTORS = REPO_ROOT / "data" / "models" / "fasttext" / "cc.en.300.vec"
 _DEV_EMBEDDINGS = REPO_ROOT / "data" / "dev" / "sections" / "embeddings"
@@ -91,8 +95,6 @@ def _run_subprocess(embedder_name: str, out_path: Path) -> None:
 
 
 def _missing_real_data_reason() -> str | None:
-    if not PY.exists():
-        return f"no .venv interpreter at {PY}"
     if not FASTTEXT_VECTORS.exists():
         return f"missing real fasttext vectors file: {FASTTEXT_VECTORS}"
     for name, path in FIT_PATHS.items():

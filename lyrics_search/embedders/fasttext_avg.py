@@ -25,8 +25,8 @@ of the previous silent fallback to a flat default_idf=1.0 weighting
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer

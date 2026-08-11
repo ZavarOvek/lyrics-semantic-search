@@ -21,14 +21,15 @@
 # needed) -- a floor/sanity check on Recall@10, not a rigorous benchmark.
 import json
 import sys
+from pathlib import Path
 
 sys.path.insert(0, ".")
 
-from lyrics_search.indexes.numpy_index import NumpyIndex
 from lyrics_search.embedders.bge_m3 import BGEM3Embedder
+from lyrics_search.indexes.numpy_index import NumpyIndex
 from lyrics_search.retrievers.dense import DenseRetriever
-from lyrics_search.retrievers.lexical import LexicalRetriever
 from lyrics_search.retrievers.hybrid import HybridRetriever
+from lyrics_search.retrievers.lexical import LexicalRetriever
 from lyrics_search.retrievers.loading import load_chunk_lookup, load_song_corpus
 
 RETURN_N = 10
@@ -36,10 +37,12 @@ RETURN_N = 10
 chunk_lookup = load_chunk_lookup("data/dev/sections/chunks.jsonl")
 song_corpus = load_song_corpus("data/dev/raw.jsonl")
 
-import numpy as np
+import numpy as np  # noqa: E402 — sys.path is prepared above, on purpose
 
 vectors = np.load("data/dev/sections/embeddings/bge-m3/vectors.npy").astype(np.float32)
-chunk_ids = json.load(open("data/dev/sections/embeddings/bge-m3/chunk_ids.json", encoding="utf-8"))
+chunk_ids = json.loads(
+    Path("data/dev/sections/embeddings/bge-m3/chunk_ids.json").read_text(encoding="utf-8")
+)
 index = NumpyIndex()
 index.build(vectors, chunk_ids)
 
@@ -61,7 +64,7 @@ with open("tests/golden/spec03_eval_queries.jsonl", encoding="utf-8") as f:
         queries.append(rec)
 
 retrievers = {"dense": dense, "lexical": lexical, "hybrid": hybrid}
-hits_per_mode = {name: 0 for name in retrievers}
+hits_per_mode = dict.fromkeys(retrievers, 0)
 
 print(f"{len(queries)} eval queries\n")
 for q in queries:

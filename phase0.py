@@ -87,7 +87,11 @@ def load_model(device: str) -> SentenceTransformer:
 
 def build_index(model: SentenceTransformer, device: str) -> None:
     """Chunk corpus, embed with bge-m3 fp16, save chunks + normalized vectors."""
-    songs = [json.loads(line) for line in open(CORPUS_PATH, encoding="utf-8")]
+    songs = [
+        json.loads(line)
+        for line in CORPUS_PATH.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
 
     chunks = []
     for song in songs:
@@ -131,7 +135,11 @@ def build_index(model: SentenceTransformer, device: str) -> None:
 
 
 def search(model: SentenceTransformer, query: str, top_k: int = 5) -> None:
-    chunks = [json.loads(line) for line in open(CHUNKS_PATH, encoding="utf-8")]
+    chunks = [
+        json.loads(line)
+        for line in CHUNKS_PATH.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
     vectors = np.load(EMB_PATH).astype(np.float32)
 
     t0 = time.time()
@@ -140,7 +148,7 @@ def search(model: SentenceTransformer, query: str, top_k: int = 5) -> None:
     elapsed_ms = (time.time() - t0) * 1000
 
     best_per_song = {}
-    for score, chunk in zip(scores, chunks):
+    for score, chunk in zip(scores, chunks, strict=True):
         key = chunk["song_id"]
         if key not in best_per_song or score > best_per_song[key][0]:
             best_per_song[key] = (score, chunk)

@@ -166,7 +166,7 @@ def test_the_two_arms_coexist_on_disk(tmp_path):
     """SPEC-04 §0.1's lesson applied to chunking: building one arm must
     not evict the other's artifacts."""
     source = JsonlFileSource(GOLDEN)
-    base = dict(corpus="demo", embedder="tfidf", index="numpy")
+    base = {"corpus": "demo", "embedder": "tfidf", "index": "numpy"}
     sections_dir = run_build(
         ExperimentConfig(chunking="sections", **base), data_root=tmp_path, source=source
     )
@@ -179,8 +179,10 @@ def test_the_two_arms_coexist_on_disk(tmp_path):
         assert (d / "chunks.jsonl").exists()
         assert (d / "indexes" / "tfidf" / "numpy").is_dir()
 
-    n_sections = sum(1 for _ in open(sections_dir / "chunks.jsonl", encoding="utf-8"))
-    n_whole = sum(1 for _ in open(whole_dir / "chunks.jsonl", encoding="utf-8"))
+    n_sections = len(
+        (sections_dir / "chunks.jsonl").read_text(encoding="utf-8").strip().splitlines()
+    )
+    n_whole = len((whole_dir / "chunks.jsonl").read_text(encoding="utf-8").strip().splitlines())
     assert n_whole < n_sections
 
     # ingest is chunking-independent, so raw.jsonl is shared, not duplicated

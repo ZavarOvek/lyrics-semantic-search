@@ -80,7 +80,7 @@ def test_numpy_index_sparse_and_dense_score_identically():
         dense_hits = dense_index.search(query, top_k=4)
         sparse_hits = sparse_index.search(query, top_k=4)
         assert [cid for cid, _ in sparse_hits] == [cid for cid, _ in dense_hits]
-        for (_, a), (_, b) in zip(sparse_hits, dense_hits):
+        for (_, a), (_, b) in zip(sparse_hits, dense_hits, strict=True):
             assert a == pytest.approx(b, abs=1e-6)
 
 
@@ -113,7 +113,7 @@ def test_faiss_index_save_load_roundtrip(tmp_path):
     actual = loaded.search(QUERY, top_k=4)
 
     assert [chunk_id for chunk_id, _ in actual] == [chunk_id for chunk_id, _ in expected]
-    for (_, score_a), (_, score_b) in zip(actual, expected):
+    for (_, score_a), (_, score_b) in zip(actual, expected, strict=True):
         assert score_a == pytest.approx(score_b, abs=1e-4)
 
 

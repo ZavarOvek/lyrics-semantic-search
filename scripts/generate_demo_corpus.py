@@ -22,9 +22,8 @@ from __future__ import annotations
 
 import argparse
 import sys
+from collections.abc import Iterator
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Iterator
 
 sys.path.insert(0, ".")
 

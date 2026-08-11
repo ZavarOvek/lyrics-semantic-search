@@ -11,6 +11,8 @@ through gives the same answer for both representations.
 
 from __future__ import annotations
 
+import re
+
 import numpy as np
 import pytest
 from scipy import sparse
@@ -112,6 +114,18 @@ def test_vector_norm_and_as_dense_vector_handle_a_sparse_row():
     assert np.allclose(dense, [3.0, 4.0, 0.0])
 
 
+def test_vector_norm_handles_a_dense_row():
+    """The sparse branch is pinned above; this pins the dense one.
+
+    Both representations flow through `vector_norm` (runners/embed.py drops
+    no-signal chunks by it), so a regression in either branch must fail a
+    test rather than only show up on one embedder.
+    """
+    row = np.array([3.0, 4.0, 0.0], dtype=np.float32)
+    assert is_sparse(row) is False
+    assert vector_norm(row) == pytest.approx(5.0)
+
+
 def test_zero_row_norm_is_zero_for_a_sparse_matrix():
     """runners/embed.py drops no-signal chunks by comparing row norms to
     ZERO_NORM_EPS; an all-zero sparse row must report 0.0, not raise."""
@@ -133,5 +147,5 @@ def test_vector_store_roundtrip_preserves_representation(tmp_path, make_sparse):
 
 
 def test_vector_store_names_the_missing_artifact(tmp_path):
-    with pytest.raises(FileNotFoundError, match="vectors.np"):
+    with pytest.raises(FileNotFoundError, match=re.escape("vectors.np")):
         load_matrix(tmp_path)

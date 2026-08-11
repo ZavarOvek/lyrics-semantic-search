@@ -6,8 +6,9 @@ here) so that anything importing contracts stays cheap and testable.
 
 from __future__ import annotations
 
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
-from typing import Iterator, Protocol, Sequence
+from typing import Protocol
 
 import numpy as np
 from scipy import sparse

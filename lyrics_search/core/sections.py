@@ -293,7 +293,7 @@ def chunk_song(
     *,
     target_max: int = TARGET_MAX_WORDS,
     hard_ceiling: int = HARD_CEILING_WORDS,
-    warn: "callable | None" = None,
+    warn: callable | None = None,
 ) -> list[Segment]:
     """SPEC-02 §4.3 cascade. `warn(original_word_count)` is called once per
     segment that hits level-4 length packing -- i.e. once per
@@ -361,7 +361,7 @@ def chunk_song_with(
     text: str,
     strategy: str = CHUNKING_SECTIONS,
     *,
-    warn: "callable | None" = None,
+    warn: callable | None = None,
 ) -> list[Segment]:
     """Dispatch to a chunking strategy by name (EVAL-PREP §3).
 

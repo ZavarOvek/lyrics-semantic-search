@@ -1,5 +1,10 @@
 **English** | [Українська](README.uk.md)
 
+[![CI](https://github.com/ZavarOvek/lyrics-semantic-search/actions/workflows/ci.yml/badge.svg)](https://github.com/ZavarOvek/lyrics-semantic-search/actions/workflows/ci.yml)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+
 # lyrics-semantic-search
 
 Semantic search over song lyrics: dense embedding search, lexical (BM25)
@@ -29,7 +34,7 @@ to end on a real ~30k-song corpus.
   recorded in `rejects.jsonl` with a reason from a closed enum.
 - **100% test coverage in `core/`**, including hypothesis-based property
   tests (RRF algebraic properties, idempotency of chunking/dedup/
-  normalization) alongside example-based unit tests — 266 tests total.
+  normalization) alongside example-based unit tests — 268 tests total.
 - **Fully synthetic demo corpus** — 200 originally-composed songs, no
   download, no GPU, builds and searches in seconds on any machine.
 
@@ -261,7 +266,7 @@ pytest -q                                                    # full suite
 pytest -q --cov=lyrics_search.core --cov-report=term-missing # core/ coverage
 ```
 
-266 tests total. With the base `requirements.txt`, 261 pass and 5 skip:
+268 tests total. With the base `requirements.txt`, 261 pass and 5 skip:
 3 require `faiss-cpu` (from `requirements-full.txt`); the other 2 require
 a real `data/dev` corpus build plus the fasttext vectors file — real data
 artifacts intentionally excluded from git (see

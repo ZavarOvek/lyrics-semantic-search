@@ -38,6 +38,7 @@ of keying by every dimension that varies, so one arm cannot evict another.
 
 from __future__ import annotations
 
+import contextlib
 import json
 from pathlib import Path
 
@@ -157,10 +158,8 @@ def _run_embed_stage(
     # name) -- swap just that inner directory into final_dir's place, then
     # drop the now-empty tmp_root wrapper.
     atomic_replace_dir(tmp_root / embedder_name, final_dir)
-    try:
+    with contextlib.suppress(OSError):
         tmp_root.rmdir()
-    except OSError:
-        pass
     return cache_key
 
 

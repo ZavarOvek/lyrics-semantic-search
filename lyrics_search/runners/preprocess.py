@@ -129,11 +129,17 @@ def run_preprocess(
         passed_song_ids.add(song.song_id)
 
         warns: list[int] = []
-        segments = chunk_song_with(song.text_raw, chunking, warn=lambda wc: warns.append(wc))
+        # B023: `warns` is rebound each iteration and the callback is consumed
+        # synchronously inside chunk_song_with, so it never outlives the loop body.
+        segments = chunk_song_with(
+            song.text_raw,
+            chunking,
+            warn=lambda wc: warns.append(wc),  # noqa: B023
+        )
         force_split_events += len(warns)
         pre_filter_chunk_total += len(segments)
 
-        keep_idx, dup_idx = dedupe_blocks([seg.text for seg in segments])
+        _keep_idx, dup_idx = dedupe_blocks([seg.text for seg in segments])
         dup_idx_set = set(dup_idx)
 
         for position, seg in enumerate(segments):

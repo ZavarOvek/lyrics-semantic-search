@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+from pydantic import ValidationError
 
 from lyrics_search.config import ExperimentConfig, RetrievalConfig, load_config
 
@@ -24,12 +25,12 @@ def test_experiment_config_defaults():
 
 
 def test_experiment_config_rejects_unknown_field():
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         ExperimentConfig(bogus_field=1)
 
 
 def test_experiment_config_rejects_invalid_mode():
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         ExperimentConfig(retrieval={"mode": "not-a-real-mode"})
 
 
@@ -102,7 +103,7 @@ def test_experiment_config_accepts_demo_corpus():
 
 
 def test_experiment_config_rejects_unknown_corpus():
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         ExperimentConfig(corpus="not-a-real-corpus")
 
 
