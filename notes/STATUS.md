@@ -9,10 +9,11 @@ The code base is complete and the repository is public. The demo builds and
 searches from a fresh clone with no flags, and the full 30,000-song corpus
 has been built and measured end to end with all four embedders.
 
-The active phase is **eval, and it is frozen** — not on design and not on
-code, but on API budget for generating the query set. Everything under
-"Decisions taken before the freeze" is settled and should not be reopened;
-everything under "What remains" is waiting on that budget.
+The active phase is **eval**. Its automatic, known-item track is complete:
+985 gated queries over 498 songs, all nine arms run, full analysis in
+`reports/eval-auto-report.md`. The thematic track has not started. The
+earlier freeze on API budget is lifted; everything under "Decisions taken
+before the freeze" is still settled and should not be reopened.
 
 What exists:
 
@@ -27,15 +28,16 @@ What exists:
 
 ## Tests and quality
 
-- **268 tests.** In a clean clone on the base `requirements.txt`: **263
-  passed, 5 skipped** — verified from CI run 31450986114 on commit
-  `ed29dc8`, identical on 3.11 and 3.12. In the full local environment,
-  with `faiss`, `gensim` and the real corpora present: **268 passed, 0
-  skipped**.
+- **290 tests.** In the full local environment, with `faiss`, `gensim` and
+  the real corpora present: **290 passed, 0 skipped**. The last figure
+  verified in a clean clone on the base `requirements.txt` was **263
+  passed, 5 skipped of 268** — CI run 31450986114 on commit `ed29dc8`,
+  identical on 3.11 and 3.12; the suite has grown since, so the clean-clone
+  split will differ.
 - Every skip is a named missing dependency, never a hidden failure. The
-  five are three `pytest.importorskip("faiss")` sites in `test_indexes.py`
-  and both parametrizations of `test_fitted_state_persistence.py`, which
-  need a real `data/dev` build.
+  five at `ed29dc8` were three `pytest.importorskip("faiss")` sites in
+  `test_indexes.py` and both parametrizations of
+  `test_fitted_state_persistence.py`, which need a real `data/dev` build.
 - **`lyrics_search/core/` is at 100% line coverage**, held there in CI by
   `pytest --cov=lyrics_search/core --cov-fail-under=100`; CI reports
   `Total coverage: 100.00%`.
@@ -164,17 +166,9 @@ instead.
 
 ## What remains
 
-- Add a `stratum` field to `EvalQuery`, plumb it through `load_eval_set`,
-  and add `--stratum` plus a slicer to the runner. While there, make
-  `load_eval_set` **fail** on an unknown field instead of ignoring it
-  silently.
-- Generation pilot on 10 songs: LongCat-2.0 against Claude Haiku, 20
-  generations each. Measure content-word overlap between each paraphrase
-  and its source chunk, and whether the paraphrase drifted into
-  generalities instead of describing that specific fragment.
-- Generate the full set over 500 songs with whichever model wins.
 - Thematic track: 50 themes, pool depth 5, manual labelling in three
-  grades.
+  grades. Not started, and not to be started without an explicit
+  go-ahead.
 - A 70-theme draft exists; the probe output through hybrid + `bge-m3` is
   in `data/probe_themes.txt` (70 blocks). A human does the filtering, and
   candidates for deletion are re-probed through
@@ -205,10 +199,11 @@ figures later superseded, because the corrections are part of the record.
 | Online branch | Config and registry, dense/lexical/hybrid retrieval, stage caching; faiss non-ASCII-path bug found and fixed | `reports/spec03-report.md` |
 | Online branch patch | Parameterized embedder registry, environment verification, real-corpus cache verification, comparison claims softened to what the sample supports | `reports/spec03-patch-report.md` |
 | Tests and release | Property tests, `core/` coverage, synthetic demo corpus, bilingual README, dependency split, publication | `reports/spec04-report.md` |
+| Eval, automatic track | LLM query generation at batch 10, the rare-term leakage gate with three-attempt retry, 985 queries over 498 songs, the nine-arm matrix with per-arm GPU telemetry | `reports/eval-auto-report.md` |
 
 Since `spec04-report.md` the repository has also been through a portfolio
-standardization pass (ruff, CI, the coverage gate) and the eval groundwork
-above. Neither has its own report yet.
+standardization pass (ruff, CI, the coverage gate), which has no report of
+its own.
 
 ## Where to look
 
@@ -226,7 +221,10 @@ above. Neither has its own report yet.
   for CI: `spec03_latency_bench.py`, `spec03_retriever_comparison.py`,
   `full_index_sanity_check.py`, `dedup_check_full.py`,
   `build_genre_lookup.py`, `convert_fasttext_vectors.py`,
-  `probe_themes.py`, `generate_demo_corpus.py`.
+  `probe_themes.py`, `generate_demo_corpus.py`,
+  `eval_gate_queries.py` (the rare-term leakage gate and its retry
+  accounting), `eval_matrix.py` (the nine-arm run, with `nvidia-smi`
+  sampled around every arm).
 - **`tests/`** — the pytest suite. `test_fitted_state_persistence.py`
   verifies that the two fit-dependent embedders reproduce identical
   vectors across separate processes; it skips cleanly, per embedder, when

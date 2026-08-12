@@ -1,0 +1,18 @@
+# Full corpus, fasttext-avg + BM25 fused by RRF, faiss HNSW index.
+#
+# The hybrid counterpart of full_dense_faiss_fasttext.yaml, with the same
+# `vectors_path` pointing at the converted `.kv` artifact rather than the
+# 4.5 GB `.vec` text file. The path is required by the embedder's declared
+# params, so naming the wrong artifact fails at config-load time instead of
+# deep inside the run.
+corpus: full
+embedder:
+  name: fasttext-avg
+  params:
+    vectors_path: data/models/fasttext/cc.en.300.limit500000.kv
+index: faiss
+retrieval:
+  mode: hybrid
+  rrf_k: 60
+  top_k: 50
+  return_n: 10

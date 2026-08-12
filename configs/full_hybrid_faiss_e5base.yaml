@@ -1,0 +1,14 @@
+# Full corpus, e5-base + BM25 fused by RRF, faiss HNSW index.
+#
+# The hybrid counterpart of full_dense_faiss_e5base.yaml. Corpus, embedder
+# and index are held identical to that arm, so the pair differs in
+# retrieval mode alone and the gain from adding the lexical branch is
+# attributable to the fusion rather than to anything underneath it.
+corpus: full
+embedder: e5-base
+index: faiss
+retrieval:
+  mode: hybrid
+  rrf_k: 60
+  top_k: 50
+  return_n: 10

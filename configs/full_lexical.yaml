@@ -1,0 +1,20 @@
+# Full corpus, BM25 only. The ninth arm of the eval matrix.
+#
+# One config, not four. BM25 is built over `text_raw` from `raw.jsonl` and
+# depends on neither the embedder nor the chunking arm --
+# `build_retriever` never resolves an embedder in lexical mode, and
+# `chunk_lookup` affects which fragment is displayed, not which song ranks
+# where. The four nominal embedder cells would return bit-identical
+# numbers, which is why the matrix is 9 runs and not 12.
+#
+# `embedder` and `index` below are therefore inert. They are still named
+# because the schema validates them against the registry either way, and a
+# config that silently accepted a nonexistent embedder in one mode and not
+# another would be worse than one that carries two unused fields.
+corpus: full
+embedder: bge-m3
+index: faiss
+retrieval:
+  mode: lexical
+  top_k: 50
+  return_n: 10
