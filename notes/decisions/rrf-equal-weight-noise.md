@@ -65,6 +65,46 @@ inside the window**, which is precisely what a co-occurrence-first sort
 does. Any consumer reading the top hit pays the full price; a consumer
 reading ten pays almost nothing.
 
+## The lever is `k`, not the branch weights
+
+Solve the condition for `k` instead of for `top_k` and it stops being a
+description of a failure and becomes a dial that already exists:
+
+```
+2/(k + top_k) > 1/(k + 1)   ⟺   k > top_k - 2
+```
+
+At `top_k = 50` that boundary is `k = 48`, and it is worth being exact about
+it, because it is a tie rather than a crossing:
+
+| `k` | worst two-branch | best one-branch | |
+|---|---|---|---|
+| 47 | 0.020619 | 0.020833 | rank can outweigh presence |
+| 48 | 0.020408 | 0.020408 | exact tie |
+| 49 | 0.020202 | 0.020000 | presence dominates rank |
+| 60 | 0.018182 | 0.016393 | presence dominates rank — **our config** |
+
+So with `top_k = 50`, any `k ≤ 47` returns real weight to rank; `k = 48` is
+the knife edge; from `k = 49` the hard partition sets in. We run `k = 60`,
+comfortably inside the regime.
+
+The value 60 is not ours and was not chosen for this corpus: it is the
+constant from the original RRF work, fitted on TREC pools that are deep
+relative to it. Our lists are the opposite — `top_k = 50` is *shallow*
+relative to `k = 60`, and that inversion is the whole source of the effect.
+The default was imported without the condition it was tuned under.
+
+**This is the better lever precisely because it introduces nothing.** Branch
+weighting does not exist anywhere in the code, and reaching for it would mean
+adding a mechanism, a place to store it, and a fitting procedure — to buy an
+effect that one existing integer already controls. `rrf_k` is a config field
+today.
+
+The same caveat below applies unchanged: `k` must not be tuned on the
+automatic track either. A degenerate branch makes any value of `k` that
+suppresses co-occurrence look good, for a reason that will not survive
+contact with real queries. The thematic track is where this gets tested.
+
 ## The caveat that matters more than the mechanism
 
 The obvious response is to fit branch weights. **Do not fit them on this
@@ -96,10 +136,11 @@ Consequences, in order of confidence:
    / description split in the report is large enough (0.413 vs 0.045
    recall@1 for `dense-bge-m3`) that one fusion policy for both is unlikely
    to be right for both.
-4. **If fusion is kept unweighted, `top_k ≥ k + 2` would at least end the
-   hard partition** and let rank compete with co-occurrence. This is
-   arithmetic, not a recommendation: it has not been measured, and raising
-   `top_k` changes the candidate pool as well.
+4. **The candidate experiment is `k`, not weights** — see the section above.
+   Lowering `rrf_k` below `top_k - 2` ends the hard partition without adding
+   any machinery, whereas raising `top_k` past `k + 2` reaches the same
+   inequality from the other side while also enlarging the candidate pool,
+   confounding the two effects. Neither has been measured.
 
 ## Where this lives in code
 
