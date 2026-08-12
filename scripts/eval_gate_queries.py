@@ -163,7 +163,14 @@ def main() -> None:
 
         for reply in attempts:
             attempt = reply.get("attempt", 1)
-            for field in QUERY_TYPES:
+            present = [f for f in QUERY_TYPES if f in reply]
+            if not present:
+                raise SystemExit(f"reply for {chunk_id} (attempt {attempt}) carries no query")
+            # A retry reply carries only the query type that failed. Regenerating
+            # a sibling that already passed would count as an attempt against it
+            # and dilute the repeat-failure rate, which is the number this whole
+            # accounting exists to produce.
+            for field in present:
                 text = reply[field]
                 query_terms = analyze(text)
                 score = idf_weighted_overlap(query_terms, source_terms, idf)
