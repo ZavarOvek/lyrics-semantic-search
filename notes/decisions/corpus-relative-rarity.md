@@ -24,6 +24,7 @@ gate, and the term that failed it was **`amid`**.
 | term | document frequency | IDF |
 |---|---|---|
 | `amid` | 9 chunks out of 181 471 | 10.81 |
+| `weeds` | 59 | 9.02 |
 | `the` | 112 237 | 1.48 |
 
 `amid` is an ordinary English preposition. Nothing about it is archaic,
@@ -34,6 +35,23 @@ as a whole returns *no*.
 Against *this* corpus it returns *yes*, emphatically: nine chunks. A
 query containing `amid` hands BM25 a key that narrows 181 471 chunks to
 nine before any other evidence is considered.
+
+**`weeds` is the second case, found in a different session** during the
+EVAL-AUTO mass generation (first 57 songs). It is if anything a plainer
+word than `amid` -- concrete, common, no register markings at all -- and
+it occurs in 59 chunks. One such case is an anecdote; two found
+independently, by the same mechanical gate, on different fragments and
+different runs, make it a property of the corpus rather than a quirk of
+one generation.
+
+The pattern both share is worth naming: the failing term is never an
+exotic word. Exotic words are exactly the ones the prompt successfully
+suppresses, because the model recognises them as distinctive. What
+survives the prompt and fails the gate is ordinary vocabulary that
+happens to be scarce in song lyrics specifically -- prepositions of
+formal register, concrete nouns from outside the usual lyrical subject
+matter. That class is invisible from inside the model and visible only
+by counting.
 
 ## The decision
 
