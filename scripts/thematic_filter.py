@@ -1,4 +1,4 @@
-"""EVAL-THEMATIC §4: the theme-filtering interface, 70 themes down to 50.
+"""EVAL-THEMATIC §4: the theme-filtering interface for the 70 draft themes.
 
     ./.venv/Scripts/python.exe scripts/thematic_filter.py
 
@@ -75,7 +75,12 @@ sys.path.insert(0, ".")  # run from the repo root, as every other script here do
 MARKS = {"k": "keep", "d": "drop", "?": "unsure", "/": "unsure"}
 KEEP_FROM_MARK = {"keep": True, "drop": False, "unsure": None}
 TIERS = ("short", "medium", "expanded")
-TARGET = 50  # §2: 50 themes survive
+# §2's "50 themes" sized the labelling effort; it was never a quota. However
+# many themes survive the filter is the number of themes, and the count that
+# actually matters is downstream: how many judgements the survivors imply.
+# Displaying a fixed goal instead would invite trimming a good theme, or
+# keeping a weak one, to hit a round number.
+POOLED_PER_THEME = 21.3  # measured on the 3-theme smoke pool; indicative only
 CLEAR = "\x1b[2J\x1b[H"
 HIT_RE = re.compile(r"^ {0,4}(\d+)\. (.*)$")
 
@@ -225,7 +230,7 @@ def render(
     head = (
         f"theme {position}/{total}   reviewed {reviewed}/{len(themes)}   "
         f"keep {counts['keep']}  drop {counts['drop']}  unsure {counts['unsure']}"
-        f"   target {TARGET}"
+        f"   \u2248 {round(counts['keep'] * POOLED_PER_THEME):,} judgements"
     )
     rule = "=" * width
     thin = "-" * width
@@ -314,8 +319,10 @@ def run(themes_path: str, probe_path: str, only: str) -> None:
     for mark in ("keep", "drop", "unsure"):
         print(f"  {mark}: {counts[mark]}")
     print(f"  kept by tier:  {tier_line(themes)}")
-    if counts["keep"] != TARGET:
-        print(f"  note: {counts['keep']} kept, {TARGET} wanted")
+    print(
+        f"  implies \u2248 {round(counts['keep'] * POOLED_PER_THEME):,} judgements "
+        f"at ~{POOLED_PER_THEME} pooled candidates per theme"
+    )
     if counts["unsure"] or counts["drop"]:
         print(f"  second pass: {counts['drop'] + counts['unsure']} themes, --only flagged")
 
