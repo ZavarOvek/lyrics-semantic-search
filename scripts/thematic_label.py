@@ -57,6 +57,9 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, ".")  # run from the repo root, as every other script here does
+sys.path.insert(0, "scripts")
+
+from tui import clear, read_key
 
 from lyrics_search.contracts import RawSong
 from lyrics_search.paths import raw_path
@@ -65,36 +68,6 @@ from lyrics_search.retrievers.loading import load_song_corpus
 GRADES = {"0": 0, "1": 1, "2": 2}
 DONT_KNOW = {"?", "/"}
 COLLAPSED_LINES = 8
-CLEAR = "\x1b[2J\x1b[H"
-
-
-def read_key() -> str:
-    """One keypress, no Enter. Imported lazily so this module still loads
-    on a machine without the other platform's terminal library."""
-    if os.name == "nt":
-        import msvcrt
-
-        ch = msvcrt.getch()
-        if ch in (b"\x00", b"\xe0"):  # function/arrow key: consume the second byte
-            msvcrt.getch()
-            return ""
-        if ch == b"\x03":
-            raise KeyboardInterrupt
-        return ch.decode("utf-8", errors="replace").lower()
-
-    import termios
-    import tty
-
-    fd = sys.stdin.fileno()
-    saved = termios.tcgetattr(fd)
-    try:
-        tty.setraw(fd)
-        ch = sys.stdin.read(1)
-    finally:
-        termios.tcsetattr(fd, termios.TCSADRAIN, saved)
-    if ch == "\x03":
-        raise KeyboardInterrupt
-    return ch.lower()
 
 
 def load_pool(path: Path | str) -> list[dict]:
@@ -172,7 +145,7 @@ def render(
         f"overall {done}/{overall}{warm}"
     )
     return (
-        f"{CLEAR}{head}\n"
+        f"{head}\n"
         f"{'=' * 78}\n"
         f"THEME:  {theme['text']}   ({theme['tier']})\n"
         f"{'=' * 78}\n"
@@ -213,6 +186,7 @@ def run(pool_path: str, judgements_path: str, data_root: str, corpus: str) -> No
             )
         cand_total = len(theme["candidates"])
         cand_no = theme["candidates"].index(song_id) + 1
+        clear()
         print(
             render(
                 theme,
@@ -257,7 +231,8 @@ def run(pool_path: str, judgements_path: str, data_root: str, corpus: str) -> No
 
     save_judgements(judgements_path, judgements)
     dk = sum(1 for r in judgements if r["dont_know"])
-    print(f"{CLEAR}saved {len(judgements)}/{overall} judgements to {judgements_path}")
+    clear()
+    print(f"saved {len(judgements)}/{overall} judgements to {judgements_path}")
     print(f"  don't know: {dk}")
     for grade in (2, 1, 0):
         print(f"  grade {grade}: {sum(1 for r in judgements if r['grade'] == grade)}")

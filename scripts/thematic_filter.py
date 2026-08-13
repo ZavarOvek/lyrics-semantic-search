@@ -71,6 +71,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, ".")  # run from the repo root, as every other script here does
+sys.path.insert(0, "scripts")
+
+from tui import clear, read_key
 
 MARKS = {"k": "keep", "d": "drop", "?": "unsure", "/": "unsure"}
 KEEP_FROM_MARK = {"keep": True, "drop": False, "unsure": None}
@@ -81,37 +84,7 @@ TIERS = ("short", "medium", "expanded")
 # Displaying a fixed goal instead would invite trimming a good theme, or
 # keeping a weak one, to hit a round number.
 POOLED_PER_THEME = 21.3  # measured on the 3-theme smoke pool; indicative only
-CLEAR = "\x1b[2J\x1b[H"
 HIT_RE = re.compile(r"^ {0,4}(\d+)\. (.*)$")
-
-
-def read_key() -> str:
-    """One keypress, no Enter. Imported lazily so this module still loads
-    on a machine without the other platform's terminal library."""
-    if os.name == "nt":
-        import msvcrt
-
-        ch = msvcrt.getch()
-        if ch in (b"\x00", b"\xe0"):  # function/arrow key: consume the second byte
-            msvcrt.getch()
-            return ""
-        if ch == b"\x03":
-            raise KeyboardInterrupt
-        return ch.decode("utf-8", errors="replace").lower()
-
-    import termios
-    import tty
-
-    fd = sys.stdin.fileno()
-    saved = termios.tcgetattr(fd)
-    try:
-        tty.setraw(fd)
-        ch = sys.stdin.read(1)
-    finally:
-        termios.tcsetattr(fd, termios.TCSADRAIN, saved)
-    if ch == "\x03":
-        raise KeyboardInterrupt
-    return ch.lower()
 
 
 def load_themes_file(path: Path | str) -> tuple[dict, list[dict]]:
@@ -237,7 +210,7 @@ def render(
     previous = f"   [previously: {theme['mark']}]" if theme.get("mark") else ""
     words = theme.get("words", len(theme["text"].split()))
     body = [
-        f"{CLEAR}{head}",
+        head,
         f"kept by tier:  {tier_line(themes)}",
         rule,
         truncate(
@@ -277,6 +250,7 @@ def run(themes_path: str, probe_path: str, only: str) -> None:
         if not pending:
             break
         theme = pending[0]
+        clear()
         print(
             render(
                 theme,
@@ -314,7 +288,8 @@ def run(themes_path: str, probe_path: str, only: str) -> None:
     save_themes_file(themes_path, meta, themes)
     counts = tally(themes)
     reviewed = sum(counts.values())
-    print(f"{CLEAR}saved {themes_path}")
+    clear()
+    print(f"saved {themes_path}")
     print(f"  reviewed: {reviewed}/{len(themes)}")
     for mark in ("keep", "drop", "unsure"):
         print(f"  {mark}: {counts[mark]}")
