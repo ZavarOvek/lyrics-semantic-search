@@ -52,6 +52,16 @@ tool:
 `--only flagged` revisits exactly the d's and the ?'s, showing the previous
 mark, so the second pass is confirmation rather than a blank re-decision.
 
+It works off a stamped queue (`recheck` on each theme), not off the live
+mark. That distinction is the whole of it: re-marking a theme `d` or `?`
+leaves it flagged, so a selection over the live mark would hold the same
+screen forever and only `k` would ever advance. The stamp also survives a
+quit, so an interrupted second pass resumes on what is left.
+
+The pass-one verdict is preserved in `mark_before_recheck` while the queue
+is outstanding, because the re-decision overwrites `mark` and the screen
+still has to show what was decided the first time round.
+
 ## Persistence
 
 Every keypress rewrites the themes file through a temp file and `os.replace`.
@@ -155,8 +165,36 @@ def select(themes: list[dict], only: str) -> list[dict]:
     if only == "all":
         return list(themes)
     if only == "flagged":
-        return [t for t in themes if t.get("mark") in {"drop", "unsure"}]
+        # The queue is an explicit stamp, not "whatever is flagged right now".
+        # Selecting on the live mark would be a trap: re-marking a theme `d`
+        # or `?` leaves it flagged, so it would stay at the head of the list
+        # and the same screen would redraw forever. Only `k` would advance.
+        return [t for t in themes if t.get("recheck")]
     return [t for t in themes if "mark" not in t]
+
+
+def stamp_recheck_queue(themes: list[dict]) -> int:
+    """Put every currently-flagged theme on the recheck queue.
+
+    Idempotent while a queue is outstanding: an interrupted second pass
+    resumes on what is left rather than re-offering what was already
+    re-decided. Once the queue empties, a further `--only flagged` run
+    stamps whatever is still flagged, which is a third pass and is meant to
+    work that way.
+
+    The pass-one verdict is copied aside because the re-decision overwrites
+    `mark`, and the screen has to keep showing what was decided earlier --
+    otherwise "previously" would echo the keypress just made.
+    """
+    if any(t.get("recheck") for t in themes):
+        return 0
+    stamped = 0
+    for theme in themes:
+        if theme.get("mark") in {"drop", "unsure"}:
+            theme["recheck"] = True
+            theme["mark_before_recheck"] = theme["mark"]
+            stamped += 1
+    return stamped
 
 
 def tally(themes: list[dict]) -> dict[str, int]:
@@ -207,7 +245,12 @@ def render(
     )
     rule = "=" * width
     thin = "-" * width
-    previous = f"   [previously: {theme['mark']}]" if theme.get("mark") else ""
+    # `mark_before_recheck` wins where it exists: during a second pass the live
+    # `mark` is the decision being made right now, and echoing that back as
+    # "previously" would turn the one piece of context this screen carries into
+    # a mirror of the last keypress.
+    earlier = theme.get("mark_before_recheck") or theme.get("mark")
+    previous = f"   [previously: {earlier}]" if earlier else ""
     words = theme.get("words", len(theme["text"].split()))
     body = [
         head,
@@ -241,6 +284,9 @@ def run(themes_path: str, probe_path: str, only: str) -> None:
             f"it was probably generated from a different theme list"
         )
 
+    if only == "flagged" and stamp_recheck_queue(themes):
+        save_themes_file(themes_path, meta, themes)
+
     seq = max((t.get("mark_seq", 0) for t in themes), default=0)
     order = {id(t): i for i, t in enumerate(themes, 1)}
     width = min(shutil.get_terminal_size((80, 24)).columns - 1, 100)
@@ -272,9 +318,17 @@ def run(themes_path: str, probe_path: str, only: str) -> None:
             marked = [t for t in themes if "mark_seq" in t]
             if marked:
                 last = max(marked, key=lambda t: t["mark_seq"])
-                last.pop("mark", None)
                 last.pop("mark_seq", None)
-                last["keep"] = None
+                if "mark_before_recheck" in last:
+                    # Undoing a re-decision restores the earlier verdict and
+                    # puts the theme back on the queue. Dropping `mark`
+                    # outright here would destroy the pass-one decision, which
+                    # undo never promised to touch.
+                    last["mark"] = last.pop("mark_before_recheck")
+                    last["recheck"] = True
+                else:
+                    last.pop("mark", None)
+                last["keep"] = KEEP_FROM_MARK.get(last.get("mark"))
                 seq = max((t.get("mark_seq", 0) for t in themes), default=0)
                 save_themes_file(themes_path, meta, themes)
             continue
@@ -283,6 +337,7 @@ def run(themes_path: str, probe_path: str, only: str) -> None:
             theme["mark"] = MARKS[key]
             theme["keep"] = KEEP_FROM_MARK[MARKS[key]]
             theme["mark_seq"] = seq
+            theme.pop("recheck", None)
             save_themes_file(themes_path, meta, themes)
 
     save_themes_file(themes_path, meta, themes)
