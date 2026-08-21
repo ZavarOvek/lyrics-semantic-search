@@ -11,9 +11,14 @@ has been built and measured end to end with all four embedders.
 
 The active phase is **eval**. Its automatic, known-item track is complete:
 985 gated queries over 498 songs, all nine arms run, full analysis in
-`reports/eval-auto-report.md`. The thematic track has not started. The
-earlier freeze on API budget is lifted; everything under "Decisions taken
-before the freeze" is still settled and should not be reopened.
+`reports/eval-auto-report.md`. The thematic track's query set is filtered
+and pooled: 70 draft themes reduced to 54 through two review passes (13
+dropped, 3 left unresolved and excluded), pool built over all nine arms --
+1,270 judgements, 14-32 per theme, mean 23.5. Full detail in
+`reports/eval-thematic-filtering-report.md`. Human labelling has not
+started; the LLM judge (§6) runs strictly after it finishes. The earlier
+freeze on API budget is lifted; everything under "Decisions taken before
+the freeze" is still settled and should not be reopened.
 
 What exists:
 
@@ -166,14 +171,12 @@ instead.
 
 ## What remains
 
-- Thematic track: 50 themes, pool depth 5, manual labelling in three
-  grades. Not started, and not to be started without an explicit
-  go-ahead.
-- A 70-theme draft exists; the probe output through hybrid + `bge-m3` is
-  in `data/probe_themes.txt` (70 blocks). A human does the filtering, and
-  candidates for deletion are re-probed through
-  `configs/full_hybrid_numpy_tfidf.yaml` first, because the error being
-  guarded against is a false discard.
+- Thematic track: pool built, 54 themes, pool depth 5, 1,270 judgements.
+  Manual labelling in three grades has not started, and the LLM judge is
+  not to be run before it finishes -- see
+  `reports/eval-thematic-filtering-report.md` for the filtering pass that
+  produced the 54 (70-theme draft, two review rounds, tfidf re-probing on
+  everything flagged, 13 dropped and 3 left unresolved and excluded).
 
 ## Not to be carried forward
 

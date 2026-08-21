@@ -81,12 +81,23 @@ POOL_FIELDS = frozenset({"theme_id", "text", "tier", "warmup", "candidates"})
 
 
 def load_themes(path: Path | str, *, limit: int | None = None) -> list[dict]:
-    """Themes from a JSONL file, skipping `_meta` and anything the human
-    has marked `keep: false`.
+    """Themes from a JSONL file, skipping `_meta`, anything marked `keep:
+    false`, and anything the second filtering pass left as `unsure`.
 
-    A theme still carrying `keep: null` is kept and counted -- filtering is
-    the human's step (§9), and silently dropping unfiltered themes would
-    turn "not yet reviewed" into "rejected".
+    `keep: null` alone is ambiguous -- it means both "never reviewed" and
+    "reviewed twice and still undecided" (`thematic_filter.py`'s second pass
+    leaves `mark: unsure` rather than forcing a verdict on a theme nobody
+    could settle). Those must not resolve the same way here, so `mark`
+    disambiguates:
+
+      * no `mark` at all -> never reviewed -> kept. A half-finished filter
+        must not silently shrink the pool; §9 filtering is the human's step,
+        not this script's.
+      * `mark: unsure` -> reviewed, left undecided -> excluded. By the time
+        this runs against the real pool, §9 filtering is finished, and an
+        explicit "not sure" is a verdict, not an omission -- pooling it
+        would grade the system against a theme nobody signed off as
+        answerable.
     """
     path = Path(path)
     if not path.exists():
@@ -101,6 +112,8 @@ def load_themes(path: Path | str, *, limit: int | None = None) -> list[dict]:
             if "_meta" in record:
                 continue
             if record.get("keep") is False:
+                continue
+            if record.get("mark") == "unsure":
                 continue
             for field in ("theme_id", "text", "tier"):
                 if not record.get(field):

@@ -93,7 +93,8 @@ TIERS = ("short", "medium", "expanded")
 # actually matters is downstream: how many judgements the survivors imply.
 # Displaying a fixed goal instead would invite trimming a good theme, or
 # keeping a weak one, to hit a round number.
-POOLED_PER_THEME = 21.3  # measured on the 3-theme smoke pool; indicative only
+POOLED_PER_THEME = 23.5  # measured on the real 54-theme pool (range 14-32); see
+# notes/reports/spec03-thematic-filtering.md for the run this came from
 HIT_RE = re.compile(r"^ {0,4}(\d+)\. (.*)$")
 
 
